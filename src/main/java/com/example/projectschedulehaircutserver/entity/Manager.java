@@ -32,7 +32,7 @@ public class Manager implements UserDetails {
     @Column(name = "fullname", length = 50, nullable = false)
     private String fullName;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "manager_role",
             joinColumns = @JoinColumn(name = "manager_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))

@@ -18,8 +18,8 @@ public class Time {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "time_name", nullable = false)
-    private Integer timeName;
+    @Column(name = "time_name", nullable = false, length = 5)
+    private String timeName;
 
     @ManyToMany(mappedBy = "times", fetch = FetchType.LAZY)
     private Set<Employee> employees = new HashSet<>();

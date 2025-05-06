@@ -19,6 +19,12 @@ public interface ServiceRepo extends JpaRepository<Service, Integer> {
             "from Service s")
     Set<ServiceDTO> findAllService();
 
+    @Query("select s from Service s")
+    List<Service> findAllServices();
+
+    @Query("select s from Service s where s.name = :name")
+    Optional<Service> findByName(@Param("name") String name);
+
     @Query(value = "CALL findAllServiceByComboId(:comboId)", nativeQuery = true)
     List<Object[]> findAllServiceByComboId(@Param("comboId") Integer comboId);
 

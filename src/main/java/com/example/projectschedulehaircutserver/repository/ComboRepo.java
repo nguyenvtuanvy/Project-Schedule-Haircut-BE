@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -16,6 +17,12 @@ public interface ComboRepo extends JpaRepository<Combo, Integer> {
     @Query("select new com.example.projectschedulehaircutserver.dto.ComboDTO(c.id, c.name,  c.image, c.price, c.haircutTime) " +
             "from Combo c")
     Set<ComboDTO> findAllCombo();
+
+    @Query("select c from Combo c")
+    List<Combo> findAllCombos();
+
+    @Query("select c from Combo c where c.name = :name")
+    Optional<Combo> findComboByName(@Param("name") String name);
 
     @Query("select new com.example.projectschedulehaircutserver.dto.ComboDTO(c.id, c.name,  c.image, c.price, c.haircutTime) " +
             "from Combo c " +

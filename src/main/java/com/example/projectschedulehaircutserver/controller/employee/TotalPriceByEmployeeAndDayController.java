@@ -18,9 +18,9 @@ public class TotalPriceByEmployeeAndDayController {
     private EmployeeService employeeService;
 
     @GetMapping("/totalSalary")
-    public ResponseEntity<?> AddWorkDoneInOrder(@RequestBody TotalPriceByEmployeeAndDayRequest request){
+    public ResponseEntity<?> totalPriceByEmployeeAndDay(@RequestBody TotalPriceByEmployeeAndDayRequest request){
         try {
-            return ResponseEntity.status(HttpStatus.OK).body(employeeService.TotalPriceByEmployeeAndDay(request));
+            return ResponseEntity.status(HttpStatus.OK).body(employeeService.totalPriceByEmployeeAndDay(request));
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }

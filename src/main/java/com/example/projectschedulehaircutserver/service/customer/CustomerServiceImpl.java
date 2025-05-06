@@ -5,12 +5,17 @@ import com.example.projectschedulehaircutserver.entity.Account;
 import com.example.projectschedulehaircutserver.entity.Customer;
 import com.example.projectschedulehaircutserver.entity.Role;
 import com.example.projectschedulehaircutserver.exeption.CustomerException;
+import com.example.projectschedulehaircutserver.exeption.LoginException;
 import com.example.projectschedulehaircutserver.repository.AccountRepo;
 import com.example.projectschedulehaircutserver.repository.CustomerRepo;
 import com.example.projectschedulehaircutserver.repository.RoleRepo;
 import lombok.AllArgsConstructor;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @AllArgsConstructor
@@ -73,4 +78,60 @@ public class CustomerServiceImpl implements CustomerService{
             throw new CustomerException("Lỗi khi lấy thông tin khách hàng: " + e.getMessage());
         }
     }
-}
+
+    @Override
+    @Transactional
+    public String updateProfileCustomer(CustomerDTO customerDTO) throws LoginException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            try {
+                Customer customer = (Customer) authentication.getPrincipal();
+
+                updateCustomerFields(customer, customerDTO);
+
+                updateAssociatedAccount(customer, customerDTO);
+
+                customerRepo.save(customer);
+                return "Cập nhật thành công";
+            } catch (Exception e){
+                throw new RuntimeException(e.getMessage());
+            }
+        } else {
+            throw new LoginException("Bạn Chưa Đăng Nhập");
+        }
+    }
+
+    private void updateCustomerFields(Customer customer, CustomerDTO dto) {
+        if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {
+            customer.setEmail(dto.getEmail());
+        }
+        if (dto.getPhone() != null && !dto.getPhone().isEmpty()) {
+            customer.setPhone(dto.getPhone());
+        }
+        if (dto.getAddress() != null && !dto.getAddress().isEmpty()) {
+            customer.setAddress(dto.getAddress());
+        }
+        if (dto.getAvatar() != null && !dto.getAvatar().isEmpty()) {
+            customer.setAvatar(dto.getAvatar());
+        }
+    }
+
+    private void updateAssociatedAccount(Customer customer, CustomerDTO dto) {
+        Account account = customer.getAccount();
+        if (account != null) {
+            if(dto.getEmail() != null && !dto.getEmail().isEmpty()){
+                account.setEmail(dto.getEmail());
+            }
+            if (dto.getPhone() != null && !dto.getPhone().isEmpty()) {
+                account.setPhone(dto.getPhone());
+            }
+            if (dto.getAddress() != null && !dto.getAddress().isEmpty()) {
+                account.setAddress(dto.getAddress());
+            }
+            if (dto.getAvatar() != null && !dto.getAvatar().isEmpty()) {
+                account.setAvatar(dto.getAvatar());
+            }
+            accountRepo.save(account);
+        }
+    }
+    }

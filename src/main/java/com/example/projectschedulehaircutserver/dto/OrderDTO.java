@@ -23,24 +23,10 @@ public class OrderDTO {
     private Time orderStartTime;
     private Time orderEndTime;
     private List<String> employeeName;
-    private String comboName;
     private List<String> serviceName;
     private BigDecimal totalPrice;
     private Integer status;
 
-    public OrderDTO(Object[] data) {
-        this.id = (Integer) data[0];
-        this.orderDate = (Date) data[1];
-        this.orderStartTime = (Time) data[2];
-        this.orderEndTime = (Time) data[3];
-        this.employeeName = Arrays.asList(((String) data[4]).split(","));
-        if (data[5] != null){
-            this.comboName = (String) data[5];
-        } else {
-            this.serviceName = Arrays.asList(((String) data[6]).split(","));
-        }
-        this.totalPrice = (BigDecimal) data[7];
-        this.status = (Integer) data[8];
-    }
+
 
 }

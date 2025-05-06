@@ -18,11 +18,10 @@ public class EmployeeDTO {
     private Integer age;
     private String address;
     private String phone;
-//    private Integer accountId;
+    private Integer type;
     private String avatar;
-//    private Boolean isDeleted;
 
-    public EmployeeDTO(String userName, String password, String fullName, Integer age, String address, String phone, String avatar, String email) {
+    public EmployeeDTO(String userName, String password, String fullName, Integer age, String address, String phone, String avatar, String email, Integer type) {
         this.userName = userName;
         this.password = password;
         this.fullName = fullName;
@@ -31,9 +30,10 @@ public class EmployeeDTO {
         this.phone = phone;
         this.avatar = avatar;
         this.email = email;
+        this.type = type;
     }
 
-    public EmployeeDTO(Integer id, String userName, String fullName, Integer age, String address, String phone, String avatar) {
+    public EmployeeDTO(Integer id, String userName, String fullName, Integer age, String address, String phone, String avatar, Integer type) {
         this.id = id;
         this.userName = userName;
         this.fullName = fullName;
@@ -41,5 +41,6 @@ public class EmployeeDTO {
         this.address = address;
         this.phone = phone;
         this.avatar = avatar;
+        this.type = type;
     }
 }

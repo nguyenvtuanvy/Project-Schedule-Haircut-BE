@@ -10,13 +10,16 @@ import com.example.projectschedulehaircutserver.exeption.LoginException;
 import com.example.projectschedulehaircutserver.repository.*;
 import com.example.projectschedulehaircutserver.request.AddComboInCartItemRequest;
 import com.example.projectschedulehaircutserver.request.AddServiceInCartItemRequest;
+import com.example.projectschedulehaircutserver.response.CartItemResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -44,13 +47,12 @@ public class CartServiceImpl implements CartService{
                                 .cart(cart)
                                 .combo(combo)
                                 .service(null)
-                                .price(combo.getPrice())
                                 .build();
                         cartItemRepo.save(cartItem);
                     }
                     return "Thêm Combo Vào Giỏ Hàng Thành Công";
-                } catch (Exception e){
-                    throw new CartItemException("Không Thể Thêm Combo Vào Giỏ Hàng");
+                } catch (CartItemException e){
+                    throw new CartItemException(e.getMessage());
                 }
             } else {
                 throw new ComboException("Không Tìm Thấy Combo");
@@ -77,13 +79,12 @@ public class CartServiceImpl implements CartService{
                                 .cart(cart)
                                 .combo(null)
                                 .service(service)
-                                .price(service.getPrice())
                                 .build();
                         cartItemRepo.save(cartItem);
                     }
                     return "Thêm Dịch Vụ Vào Giỏ Hàng Thành Công";
                 } catch (Exception e){
-                    throw new CartItemException("Không Thể Thêm Dịch Vụ Vào Giỏ Hàng");
+                    throw new CartItemException(e.getMessage());
                 }
             } else {
                 throw new ComboException("Không Tìm Thấy Dịch Vụ");
@@ -91,6 +92,38 @@ public class CartServiceImpl implements CartService{
         } else {
             throw new LoginException("Bạn Chưa Đăng Nhập");
         }
+    }
+
+    @Override
+    public Set<CartItemResponse> getCartItem() throws LoginException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            Customer customer = (Customer) authentication.getPrincipal();
+            Cart cart = cartRepo.findCartByCustomerId(customer.getId()).orElseThrow();
+
+            return cartItemRepo.findCartItemsByCartId(cart.getId());
+        } else {
+            throw new LoginException("Bạn Chưa Đăng Nhập");
+        }
+    }
+
+    @Override
+    public Integer countCartItem() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!(authentication instanceof AnonymousAuthenticationToken)) {
+            Customer customer = (Customer) authentication.getPrincipal();
+            Cart cart = cartRepo.findCartByCustomerId(customer.getId()).orElseThrow();
+
+            return cartItemRepo.countByCartId(cart.getId());
+        } else {
+            return 0;
+        }
+    }
+
+    @Override
+    @Transactional
+    public void deleteCartItem(Set<Integer> cartItemIds) {
+        cartItemRepo.deleteAllByIdIn(cartItemIds);
     }
 
 

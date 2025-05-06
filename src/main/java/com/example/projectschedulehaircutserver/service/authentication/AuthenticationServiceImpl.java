@@ -114,8 +114,14 @@ public class AuthenticationServiceImpl implements AuthenticationService{
                 )
         );
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        if (jwtService.isTokenInWhiteList(userDetails.getUsername())){
+            throw new AlreadyLoggedInException("Tài khoản đang được đăng nhập ở một nơi khác.");
+        }
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String accessToken = jwtService.generateAccessToken(userDetails);
         String refreshToken = jwtService.generateAndSaveRefreshToken(userDetails);
@@ -157,10 +163,10 @@ public class AuthenticationServiceImpl implements AuthenticationService{
 
         String code = UUID.randomUUID().toString().substring(0, 6);
         redisService.saveOTP(email, code, 10);
-        emailService.send(email, "Mã xác thực đổi mật khẩu: <b>" + code + "</b>");
+        emailService.send(email, "Mã xác thực đổi mật khẩu: " + code);
         return "Mã xác thực đã gửi qua email.";
     }
-
+ 
 
     @Override
     public String changePassword(String email, String code, String newPassword) throws CustomerException {

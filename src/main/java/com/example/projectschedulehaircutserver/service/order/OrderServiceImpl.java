@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -29,10 +28,12 @@ public class OrderServiceImpl implements OrderService{
     private final ComboRepo comboRepo;
     private final ServiceRepo serviceRepo;
     private final CouponsRepo couponsRepo;
+    private final CartItemRepo cartItemRepo;
+    private final CartRepo cartRepo;
 
     @Override
     @Transactional
-    public String BookingScheduleHaircut(OrderScheduleHaircutRequest request) throws LoginException {
+    public String bookingScheduleHaircut(OrderScheduleHaircutRequest request) throws LoginException, OrderException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)){
             try {
@@ -42,29 +43,38 @@ public class OrderServiceImpl implements OrderService{
                     employees.add(employeeRepo.findById(eid).orElseThrow());
                 });
 
+
+                // Kiểm tra lịch trùng
                 for (Employee employee : employees) {
                     List<Orders> orders = orderRepo.findAllOrderBooking(employee.getId());
                     if (!orders.isEmpty()) {
                         for (Orders o : orders) {
                             if (o.getOrderDate().equals(request.getOrderDate()) &&
                                     isTimeBetween(request.getOrderStartTime(), o.getOrderStartTime(), o.getOrderEndTime())) {
-                                throw new OrderException("Nhân viên bạn muốn đặt lịch hiện đang có lịch trùng với lịch hẹn của bạn, " +
-                                        "vui lòng chọn ngày khác hoặc thay đổi giờ");
+                                throw new OrderException(
+                                        "Nhân viên bạn muốn đặt lịch hiện đang có lịch trùng với lịch hẹn của bạn, vui lòng chọn ngày khác hoặc thay đổi giờ",
+                                        "SCHEDULE_CONFLICT"
+                                );
                             }
                         }
                     }
                 }
 
-                Coupons coupons = couponsRepo.findCouponByCustomerId(customer.getId()).orElseThrow();
+                Coupons coupons = couponsRepo.findCouponByCustomerId(customer.getId()).orElse(null);
 
-                BigDecimal discount = request.getTotalPrice().multiply((coupons != null) ? BigDecimal.valueOf(coupons.getDiscount()) : BigDecimal.ONE);
+                BigDecimal discount = BigDecimal.ZERO;
+                if (coupons != null && coupons.getDiscount() != null) {
+                    discount = request.getTotalPrice()
+                            .multiply(BigDecimal.valueOf(coupons.getDiscount()));
+                }
                 BigDecimal totalOrder = request.getTotalPrice().subtract(discount);
+
 
                 Orders orders = Orders.builder()
                         .orderDate(request.getOrderDate())
                         .orderStartTime(request.getOrderStartTime())
                         .orderEndTime(request.getOrderStartTime().plusMinutes(request.getHaircutTime()))
-                        .status(1)
+                        .status(0)
                         .haircutTime(request.getHaircutTime())
                         .totalPrice(totalOrder)
                         .customer(customer)
@@ -96,8 +106,10 @@ public class OrderServiceImpl implements OrderService{
                 if (combo != null){
                     for (com.example.projectschedulehaircutserver.entity.Service service : services) {
                         if (combo.getServices().stream().anyMatch(check -> Objects.equals(check.getId(), service.getId()))) {
-                            throw new OrderException("Dịch vụ đã có trong combo, " +
-                                    "vui lòng thêm một dịch vụ khác ngoài combo đã chọn");
+                            throw new OrderException(
+                                    "Dịch vụ đã có trong combo, vui lòng thêm một dịch vụ khác ngoài combo đã chọn",
+                                    "DUPLICATE_SERVICE"
+                            );
                         }
                     }
                 }
@@ -115,9 +127,16 @@ public class OrderServiceImpl implements OrderService{
                         orderItemRepo.save(orderItem);
                     });
                 }
+
+                Cart cart = cartRepo.findCartByCustomerId(customer.getId()).orElseThrow();
+
+                cartItemRepo.clearCartItemsByCartId(cart.getId());
+
                 return "Đặt Lịch Cắt Tóc Thành Công !!!";
-            } catch (Exception e){
-                throw new RuntimeException(e.getMessage());
+            } catch (OrderException e) {
+                throw e; // Re-throw để GlobalExceptionHandler xử lý
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi hệ thống khi đặt lịch: " + e.getMessage(), e);
             }
         } else {
             throw new LoginException("Bạn Chưa Đăng Nhập");
@@ -170,15 +189,26 @@ public class OrderServiceImpl implements OrderService{
     }
 
     @Override
+    @Transactional
+    public void updateBookingStatus(Integer bookingId, Integer status) {
+        Orders orders = orderRepo.findOrderByOrderId(bookingId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        orders.setStatus(status);
+        orderRepo.save(orders);
+    }
+
+    @Override
     public Set<OrderDTO> findAllOrderByEmployeeAndDate(AllOrderEmployeeAndDateRequest request) throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!(authentication instanceof AnonymousAuthenticationToken)) {
             try {
-                Employee employee = (Employee) authentication.getPrincipal();
-                return orderRepo.findAllOrderByEmployeeAndDate(employee.getId(), 1, request.getOrderDate())
-                        .stream()
-                        .map(OrderDTO::new)
-                        .collect(Collectors.toSet());
+//                Employee employee = (Employee) authentication.getPrincipal();
+//                return orderRepo.findAllOrderByEmployeeAndDate(employee.getId(), 1, request.getOrderDate())
+//                        .stream()
+//                        .map(OrderDTO::new)
+//                        .collect(Collectors.toSet());
+
+                return null;
             } catch (Exception e){
                 throw new RuntimeException(e.getMessage());
             }
@@ -206,12 +236,53 @@ public class OrderServiceImpl implements OrderService{
         }
     }
 
+    private Set<OrderDTO> convertToOrderDTO(List<Object[]> rawOrders) {
+        Map<String, OrderDTO> groupedOrders = new LinkedHashMap<>();
+
+        for (Object[] row : rawOrders) {
+            Integer id = (Integer) row[0];
+            Date orderDate = (Date) row[1];
+            java.sql.Time orderStartTime = (java.sql.Time) row[2];
+            java.sql.Time orderEndTime = (java.sql.Time) row[3];
+            String employeeName = (String) row[4];
+            String comboName = (String) row[5];
+            String serviceName = (String) row[6];
+            BigDecimal totalPrice = (BigDecimal) row[7];
+            Integer status = (Integer) row[8];
+
+            String key = id + "-" + orderDate + "-" + orderStartTime + "-" + orderEndTime;
+
+            OrderDTO dto = groupedOrders.getOrDefault(key,
+                    OrderDTO.builder()
+                            .id(id)
+                            .orderDate(orderDate)
+                            .orderStartTime(orderStartTime)
+                            .orderEndTime(orderEndTime)
+                            .employeeName(new ArrayList<>())
+                            .serviceName(new ArrayList<>())
+                            .totalPrice(totalPrice)
+                            .status(status)
+                            .build()
+            );
+
+            if (employeeName != null && !dto.getEmployeeName().contains(employeeName)) {
+                dto.getEmployeeName().add(employeeName);
+            }
+
+            String finalService = comboName != null ? comboName : serviceName;
+            if (finalService != null && !dto.getServiceName().contains(finalService)) {
+                dto.getServiceName().add(finalService);
+            }
+
+            groupedOrders.put(key, dto);
+        }
+
+        return new LinkedHashSet<>(groupedOrders.values());
+    }
+
     public Set<OrderDTO> showOrderByCustomerStatus(Integer customerId, Integer status){
         List<Object[]> objects = orderRepo.findOrdersByCustomerId(customerId, status);
-
-        return objects.stream()
-                .map(OrderDTO::new)
-                .collect(Collectors.toSet());
+        return convertToOrderDTO(objects);
     }
 
 

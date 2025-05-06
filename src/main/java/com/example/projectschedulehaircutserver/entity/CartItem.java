@@ -32,7 +32,4 @@ public class CartItem {
     @JsonIgnore
     @JoinColumn(name = "service_id")
     private Service service;
-
-    @Column(name = "price")
-    private BigDecimal price;
 }

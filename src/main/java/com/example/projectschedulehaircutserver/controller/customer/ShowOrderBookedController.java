@@ -1,4 +1,4 @@
-package com.example.projectschedulehaircutserver.controller.web;
+package com.example.projectschedulehaircutserver.controller.customer;
 
 import com.example.projectschedulehaircutserver.service.order.OrderService;
 import lombok.AllArgsConstructor;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/web")
+@RequestMapping("/customer")
 @AllArgsConstructor
 public class ShowOrderBookedController {
     private OrderService orderService;

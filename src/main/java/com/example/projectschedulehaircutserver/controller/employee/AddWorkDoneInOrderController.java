@@ -20,7 +20,7 @@ public class AddWorkDoneInOrderController {
     private WorkDoneService workDoneService;
 
     @PostMapping("/addWork")
-    public ResponseEntity<?> AddWorkDoneInOrder(@RequestBody AddWorkDoneInOrderRequest request){
+    public ResponseEntity<?> addWorkDoneInOrder(@RequestBody AddWorkDoneInOrderRequest request){
         try {
             String message = workDoneService.addWorkDoneInOrder(request);
             return ResponseEntity.status(HttpStatus.OK).body(message);
