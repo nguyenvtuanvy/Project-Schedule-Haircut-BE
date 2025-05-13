@@ -20,6 +20,7 @@ public class EmployeeDTO {
     private String phone;
     private Integer type;
     private String avatar;
+    private Integer isBlocked;
 
     public EmployeeDTO(String userName, String password, String fullName, Integer age, String address, String phone, String avatar, String email, Integer type) {
         this.userName = userName;

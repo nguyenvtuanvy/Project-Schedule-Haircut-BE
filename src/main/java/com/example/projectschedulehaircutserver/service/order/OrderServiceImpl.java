@@ -8,6 +8,7 @@ import com.example.projectschedulehaircutserver.repository.*;
 import com.example.projectschedulehaircutserver.request.ActionOrderByCustomerRequest;
 import com.example.projectschedulehaircutserver.request.AllOrderEmployeeAndDateRequest;
 import com.example.projectschedulehaircutserver.request.OrderScheduleHaircutRequest;
+import com.example.projectschedulehaircutserver.service.email.EmailService;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,8 @@ public class OrderServiceImpl implements OrderService{
     private final CouponsRepo couponsRepo;
     private final CartItemRepo cartItemRepo;
     private final CartRepo cartRepo;
+    private final CustomerRepo customerRepo;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -191,6 +194,75 @@ public class OrderServiceImpl implements OrderService{
     @Override
     @Transactional
     public void updateBookingStatus(Integer bookingId, Integer status) {
+        Orders order = orderRepo.findOrderByOrderId(bookingId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        Customer customer = order.getCustomer();
+
+        String employeeName = order.getEmployees().stream()
+                .findFirst()
+                .map(Employee::getFullName)
+                .orElse("Nhân viên salon");
+
+        String bookingDetails = buildBookingDetails(order);
+
+        if (status == 1) {
+            emailService.sendBookingConfirmation(
+                    order.getCustomer().getEmail(),
+                    order.getCustomer().getFullName(),
+                    bookingDetails,
+                    employeeName
+            );
+        } else if (status == 2) {
+            emailService.sendBookingCancellation(
+                    order.getCustomer().getEmail(),
+                    order.getCustomer().getFullName(),
+                    bookingDetails,
+                    employeeName,
+                    null
+            );
+        }
+
+        order.setStatus(status);
+        orderRepo.save(order);
+    }
+
+    private String buildBookingDetails(Orders order) {
+        return "<ul>" +
+                "<li><strong>Mã lịch hẹn:</strong> " + order.getId() + "</li>" +
+                "<li><strong>Ngày:</strong> " + order.getOrderDate() + "</li>" +
+                "<li><strong>Giờ:</strong> " + order.getOrderStartTime() + " - " + order.getOrderEndTime() + "</li>" +
+                "<li><strong>Dịch vụ:</strong> " + getServiceNames(order) + "</li>" +
+                "<li><strong>Tổng tiền:</strong> " + order.getTotalPrice() + " VNĐ</li>" +
+                "</ul>";
+    }
+
+    private String getServiceNames(Orders order) {
+        if (order == null || order.getOrderItems() == null) {
+            return "<li>Không có thông tin dịch vụ</li>";
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        order.getOrderItems().forEach(item -> {
+            if (item.getService() != null) {
+                sb.append("<li>").append(item.getService().getName())
+                        .append(" - ").append(item.getPrice()).append(" VNĐ</li>");
+            } else if (item.getCombo() != null) {
+                sb.append("<li><strong>Combo: ").append(item.getCombo().getName())
+                        .append("</strong> - ").append(item.getPrice()).append(" VNĐ<ul>");
+
+                item.getCombo().getServices().forEach(service ->
+                        sb.append("<li>").append(service.getName()).append("</li>"));
+
+                sb.append("</ul></li>");
+            }
+        });
+
+        return sb.toString();
+    }
+
+    @Override
+    public void cancelBooking(Integer bookingId, Integer status) {
         Orders orders = orderRepo.findOrderByOrderId(bookingId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
 
         orders.setStatus(status);

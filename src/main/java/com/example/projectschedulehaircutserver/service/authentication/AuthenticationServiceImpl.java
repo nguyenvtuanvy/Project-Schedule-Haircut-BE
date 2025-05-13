@@ -158,13 +158,37 @@ public class AuthenticationServiceImpl implements AuthenticationService{
 
     @Override
     public String requestChangePassword(String email) throws CustomerException {
-        Customer customer = customerRepo.findCustomerByEmail(email)
-                .orElseThrow(() -> new CustomerException("Email không tồn tại"));
+        // Validate email format first
+        if (!isValidEmail(email)) {
+            throw new CustomerException("Địa chỉ email không hợp lệ");
+        }
 
-        String code = UUID.randomUUID().toString().substring(0, 6);
+        Customer customer = customerRepo.findCustomerByEmail(email)
+                .orElseThrow(() -> new CustomerException("Email không tồn tại trong hệ thống"));
+
+        // Check request limit
+        if (redisService.getOTPRequestCount(email) >= 3) {
+            throw new CustomerException("Bạn đã yêu cầu quá nhiều lần. Vui lòng thử lại sau 30 phút");
+        }
+
+        String code = generateRandomCode(6);
         redisService.saveOTP(email, code, 10);
-        emailService.send(email, "Mã xác thực đổi mật khẩu: " + code);
-        return "Mã xác thực đã gửi qua email.";
+        redisService.incrementOTPRequestCount(email);
+
+        emailService.sendPasswordResetEmail(email, customer.getFullName(), code);
+
+        return "Mã xác thực đã được gửi. Vui lòng kiểm tra email của bạn.";
+    }
+
+    private boolean isValidEmail(String email) {
+        return email != null && email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
+    }
+
+    private String generateRandomCode(int length) {
+        return UUID.randomUUID().toString()
+                .replace("-", "")
+                .substring(0, length)
+                .toUpperCase();
     }
  
 

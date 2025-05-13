@@ -23,4 +23,6 @@ public interface EmployeeService {
     List<EmployeeAppointmentByHourResponse> getAppointmentsByHour() throws LoginException;
 
     List<EmployeeAppointmentNeedsConfirmationResponse> getAppointmentsNeedsConfirmation() throws LoginException;
+
+    void updateEmployee(Integer id, EmployeeDTO employeeDTO);
 }

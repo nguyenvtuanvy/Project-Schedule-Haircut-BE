@@ -21,7 +21,7 @@ public class ShowAllEmployeeController {
     private EmployeeService employeeService;
 
     @GetMapping("/findAllEmployee")
-    public ResponseEntity<?> findAllOrderByEmployeeAndDate(){
+    public ResponseEntity<?> showALlEmployee(){
         try {
             Set<EmployeeDTO> employeeDTOS = employeeService.showAllEmployee();
             return ResponseEntity.status(HttpStatus.OK).body(employeeDTOS);

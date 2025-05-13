@@ -31,48 +31,73 @@ public class EmployeeServiceImpl implements EmployeeService{
     private PasswordEncoder encoder;
     @Override
     public void createEmployee(EmployeeDTO employeeDTO) {
-        try {
-            Role role = roleRepo.findById(1).orElseThrow(() -> new RuntimeException("No roles specified."));
+        Role role = roleRepo.findById(1)
+                .orElseThrow(() -> new RuntimeException("No roles specified."));
 
-            Account account = Account.builder()
-                    .fullName(employeeDTO.getFullName())
-                    .userName(employeeDTO.getUserName())
-                    .email(employeeDTO.getEmail())
-                    .password(encoder.encode(employeeDTO.getPassword()))
-                    .age(employeeDTO.getAge())
-                    .address(employeeDTO.getAddress())
-                    .role(role)
-                    .phone(employeeDTO.getPhone())
-                    .build();
-
-            Account savedAccount = accountRepo.save(account);
-
-            Employee employee = new Employee();
-
-            employee.setFullName(employeeDTO.getFullName());
-            employee.setUserName(employeeDTO.getUserName());
-            employee.setEmail(employeeDTO.getEmail());
-            employee.setPassword(encoder.encode(employeeDTO.getPassword()));
-            employee.setAge(employeeDTO.getAge());
-            employee.setAddress(employeeDTO.getAddress());
-            employee.setPhone(employeeDTO.getPhone());
-            employee.setRole(role);
-            employee.setIsDeleted(false);
-            employee.setAvatar(employeeDTO.getAvatar());
-
-            if (employeeDTO.getType() == 0){
-                employee.setEmployeeType(Employee.EmployeeType.HAIR_STYLIST_STAFF);
-            } else {
-                employee.setEmployeeType(Employee.EmployeeType.SPA_STAFF);
-            }
-
-            employee.setAccount(savedAccount);
-
-            employeeRepo.save(employee);
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
+        if (accountRepo.existsByUserName(employeeDTO.getUserName())) {
+            throw new RuntimeException("Username already exists.");
         }
+
+        Account account = Account.builder()
+                .fullName(employeeDTO.getFullName())
+                .userName(employeeDTO.getUserName())
+                .email(employeeDTO.getEmail())
+                .password(encoder.encode(employeeDTO.getPassword()))
+                .age(employeeDTO.getAge())
+                .address(employeeDTO.getAddress())
+                .role(role)
+                .phone(employeeDTO.getPhone())
+                .build();
+
+        Account savedAccount = accountRepo.save(account);
+
+        Employee employee = new Employee();
+        employee.setFullName(employeeDTO.getFullName());
+        employee.setUserName(employeeDTO.getUserName());
+        employee.setEmail(employeeDTO.getEmail());
+        employee.setPassword(encoder.encode(employeeDTO.getPassword()));
+        employee.setAge(employeeDTO.getAge());
+        employee.setAddress(employeeDTO.getAddress());
+        employee.setPhone(employeeDTO.getPhone());
+        employee.setRole(role);
+//        employee.setIsDeleted(false);
+        employee.setAvatar("https://i.postimg.cc/pVs3qTMy/image.png");
+        employee.setEmployeeType(employeeDTO.getType() == 0 ? Employee.EmployeeType.HAIR_STYLIST_STAFF : Employee.EmployeeType.SPA_STAFF);
+        employee.setAccount(savedAccount);
+
+        employeeRepo.save(employee);
     }
+
+    @Override
+    public void updateEmployee(Integer id, EmployeeDTO employeeDTO) {
+        Employee employee = employeeRepo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+
+        if (!employee.getUsername().equals(employeeDTO.getUserName())) {
+            if (accountRepo.existsByUserName(employeeDTO.getUserName())) {
+                throw new RuntimeException("Username already exists");
+            }
+        }
+
+        Account account = employee.getAccount();
+        account.setFullName(employeeDTO.getFullName());
+        account.setUserName(employeeDTO.getUserName());
+        account.setEmail(employeeDTO.getEmail());
+        account.setPhone(employeeDTO.getPhone());
+        account.setAge(employeeDTO.getAge());
+        account.setAddress(employeeDTO.getAddress());
+
+        if (employeeDTO.getPassword() != null && !employeeDTO.getPassword().isEmpty()) {
+            account.setPassword(encoder.encode(employeeDTO.getPassword()));
+        }
+        accountRepo.save(account);
+
+        employee.setEmployeeType(employeeDTO.getType() == 0
+                ? Employee.EmployeeType.HAIR_STYLIST_STAFF
+                : Employee.EmployeeType.SPA_STAFF);
+        employeeRepo.save(employee);
+    }
+
 
     @Override
     public Set<EmployeeDTO> showAllEmployee() {

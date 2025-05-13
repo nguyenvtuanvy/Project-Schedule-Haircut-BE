@@ -2,15 +2,13 @@ package com.example.projectschedulehaircutserver.service.service;
 
 import com.example.projectschedulehaircutserver.dto.ServiceDTO;
 import com.example.projectschedulehaircutserver.repository.ServiceRepo;
+import com.example.projectschedulehaircutserver.response.ServiceManagementResponse;
 import com.example.projectschedulehaircutserver.response.ShowAllServiceByComboIdResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +35,19 @@ public class ProductServiceImpl implements ProductService{
         return serviceRepo.findAllServiceByCategoryId(categoryId).stream()
                 .sorted(Comparator.comparing(ServiceDTO::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    @Override
+    public Set<ServiceManagementResponse> getAllServices() {
+        try {
+            Set<ServiceManagementResponse> result = serviceRepo.getAllServices();
+            if(result.isEmpty()) {
+                throw new NoSuchElementException("Danh sách khách hàng trống");
+            }
+            return result;
+        } catch (RuntimeException ex) {
+            throw new RuntimeException("Lỗi truy vấn dữ liệu");
+        }
     }
 
 

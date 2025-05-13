@@ -1,5 +1,7 @@
 package com.example.projectschedulehaircutserver.exeption;
 
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -111,6 +113,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ComboException.class)
     public ResponseEntity<Object> handleComboException(ComboException ex) {
         return buildResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(EmptyResultDataAccessException.class)
+    public ResponseEntity<Object> handleEmptyResultDataAccess(EmptyResultDataAccessException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Không tìm thấy dữ liệu");
+    }
+
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<Object> handleDataAccessException(DataAccessException ex) {
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "Lỗi hệ thống khi truy cập dữ liệu: " + ex.getMessage()
+        );
     }
 
     // Phương thức hỗ trợ tạo response

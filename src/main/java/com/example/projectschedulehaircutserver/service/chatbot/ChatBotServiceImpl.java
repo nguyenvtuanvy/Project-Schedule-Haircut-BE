@@ -133,7 +133,7 @@ public class ChatBotServiceImpl implements ChatBotService {
         Set<Employee.EmployeeType> allowedEmployeeTypes = determineAllowedEmployeeTypes(serviceType, comboType);
         state.setAllowedEmployeeTypes(allowedEmployeeTypes);
 
-        List<Employee> employees = employeeRepository.findAllEmployees().stream()
+        List<Employee> employees = employeeRepository.getAllEmployees().stream()
                 .filter(e -> allowedEmployeeTypes.contains(e.getEmployeeType()))
                 .toList();
 

@@ -21,6 +21,8 @@ public interface OrderService {
 
     void updateBookingStatus(Integer bookingId, Integer status);
 
+    void cancelBooking(Integer bookingId, Integer status);
+
     Set<OrderDTO> findAllOrderByEmployeeAndDate(AllOrderEmployeeAndDateRequest request) throws LoginException;
 
     String ConfirmDoneOrCancelOrderedByCustomer(ActionOrderByCustomerRequest request) throws LoginException;

@@ -58,6 +58,9 @@ public class Account implements UserDetails {
     @Column(name = "avatar", nullable = true)
     private String avatar;
 
+    @Column(name = "is_blocked", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean isBlocked = false;
+
     @CreationTimestamp
     @Column(nullable = false)
     private LocalDateTime createdAt;

@@ -88,10 +88,11 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.13</version>
         </dependency>
+
         <dependency>
             <groupId>com.google.cloud</groupId>
-            <artifactId>google-cloud-dialogflow</artifactId>
-            <version>4.20.0</version>
+            <artifactId>google-cloud-vertexai</artifactId>
+            <version>0.6.0</version>
         </dependency>
     </dependencies>
 

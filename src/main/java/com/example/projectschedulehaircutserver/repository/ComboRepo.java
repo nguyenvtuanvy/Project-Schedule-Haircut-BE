@@ -2,6 +2,7 @@ package com.example.projectschedulehaircutserver.repository;
 
 import com.example.projectschedulehaircutserver.dto.ComboDTO;
 import com.example.projectschedulehaircutserver.entity.Combo;
+import com.example.projectschedulehaircutserver.response.ComboManagementResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -29,4 +30,8 @@ public interface ComboRepo extends JpaRepository<Combo, Integer> {
             "JOIN Category ct ON ct.id = c.category.id " +
             "WHERE ct.id = :categoryId")
     Set<ComboDTO> findAllComboByCategoryId(@Param("categoryId") Integer categoryId);
+
+    @Query("SELECT DISTINCT c FROM Combo c LEFT JOIN FETCH c.services ORDER BY c.id ASC")
+    List<Combo> getAllCombos();
+
 }

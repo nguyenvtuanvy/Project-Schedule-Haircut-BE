@@ -1,13 +1,13 @@
 package com.example.projectschedulehaircutserver.service.combo;
 
 import com.example.projectschedulehaircutserver.dto.ComboDTO;
+import com.example.projectschedulehaircutserver.entity.Combo;
 import com.example.projectschedulehaircutserver.repository.ComboRepo;
+import com.example.projectschedulehaircutserver.response.ComboManagementResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,4 +26,29 @@ public class ComboServiceImpl implements ComboService{
                 .sorted(Comparator.comparing(ComboDTO::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
+
+    @Override
+    public Set<ComboManagementResponse> getAllCombos() {
+        try {
+            List<Combo> combos = comboRepo.getAllCombos();
+            if (combos.isEmpty()) {
+                throw new NoSuchElementException("Danh sách combo trống");
+            }
+
+            Set<ComboManagementResponse> result = combos.stream()
+                    .map(c -> new ComboManagementResponse(
+                            c.getId(),
+                            c.getName(),
+                            c.getPrice(),
+                            c.getImage(),
+                            c.getServices().stream().map(service -> service.getId()).collect(Collectors.toSet())
+                    ))
+                    .collect(Collectors.toSet());
+
+            return result;
+        } catch (RuntimeException ex) {
+            throw new RuntimeException("Lỗi truy vấn dữ liệu", ex);
+        }
+    }
+
 }

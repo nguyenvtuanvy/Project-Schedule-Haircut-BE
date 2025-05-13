@@ -22,9 +22,6 @@ public class Employee extends Account {
     @Column(nullable = false)
     private EmployeeType employeeType;
 
-    @Column(name = "isDeleted")
-    private Boolean isDeleted;
-
     @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
     private Account account;

@@ -9,13 +9,18 @@ import com.example.projectschedulehaircutserver.exeption.LoginException;
 import com.example.projectschedulehaircutserver.repository.AccountRepo;
 import com.example.projectschedulehaircutserver.repository.CustomerRepo;
 import com.example.projectschedulehaircutserver.repository.RoleRepo;
+import com.example.projectschedulehaircutserver.response.AccountManagementResponse;
 import lombok.AllArgsConstructor;
+import org.springframework.dao.DataAccessException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.NoSuchElementException;
+import java.util.Set;
 
 @Service
 @AllArgsConstructor
@@ -100,6 +105,7 @@ public class CustomerServiceImpl implements CustomerService{
             throw new LoginException("Bạn Chưa Đăng Nhập");
         }
     }
+
 
     private void updateCustomerFields(Customer customer, CustomerDTO dto) {
         if (dto.getEmail() != null && !dto.getEmail().isEmpty()) {

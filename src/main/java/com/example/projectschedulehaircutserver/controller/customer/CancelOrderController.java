@@ -19,7 +19,7 @@ public class CancelOrderController {
     @PutMapping("/cancel-order")
     public ResponseEntity<?> cancelOrder(@RequestBody ActionOrderByCustomerRequest request){
         try {
-            orderService.updateBookingStatus(request.getOrderId(), request.getStatus());
+            orderService.cancelBooking(request.getOrderId(), request.getStatus());
             return ResponseEntity.status(HttpStatus.OK).body("Thành Công");
         } catch (Exception e){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

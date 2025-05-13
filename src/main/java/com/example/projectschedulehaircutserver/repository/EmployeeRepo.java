@@ -18,11 +18,11 @@ public interface EmployeeRepo extends JpaRepository<Employee, Integer> {
 
     @Query("SELECT new com.example.projectschedulehaircutserver.dto.EmployeeDTO(e.id, e.userName, e.fullName, e.age, e.address, e.phone, e.avatar, " +
             "CASE WHEN e.employeeType = 'HAIR_STYLIST_STAFF' THEN 0 ELSE 1 END) " +
-            "FROM Employee e WHERE e.isDeleted = false")
+            "FROM Employee e WHERE e.isBlocked = false")
     Set<EmployeeDTO> findAllEmployee();
 
-    @Query("SELECT e FROM Employee e WHERE e.isDeleted = false")
-    Set<Employee> findAllEmployees();
+    @Query("SELECT e FROM Employee e WHERE e.isBlocked = false")
+    Set<Employee> getAllEmployees();
 
     @Query("SELECT e FROM Employee e WHERE e.fullName = :fullName")
     Optional<Employee> findEmployeeByName(@Param("fullName") String fullName);
