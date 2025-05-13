@@ -18,7 +18,6 @@ public class AccountManagementResponse {
     private AccountDTO account;
     private String role;
     private Boolean isBlocked;
-    private Boolean isDeleted;
     private List<String> times;
     private Integer bookingCount;
 }

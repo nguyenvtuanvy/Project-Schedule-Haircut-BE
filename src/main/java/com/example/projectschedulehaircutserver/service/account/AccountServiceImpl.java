@@ -41,9 +41,8 @@ public class AccountServiceImpl implements AccountService {
 
                 String role = toString(row[8]);
                 Boolean isBlocked = toBoolean(row[9]);
-                Boolean isDeleted = toBoolean(row[10]);
-                List<String> times = toStringList(row[11]);
-                Integer bookingCount = toInteger(row[12]);
+                List<String> times = toStringList(row[10]);
+                Integer bookingCount = toInteger(row[11]);
 
                 AccountManagementResponse response = AccountManagementResponse.builder()
                         .id(id)
@@ -51,7 +50,6 @@ public class AccountServiceImpl implements AccountService {
                         .account(accountDTO)
                         .role(role)
                         .isBlocked(isBlocked)
-                        .isDeleted(isDeleted)
                         .times(times)
                         .bookingCount(bookingCount)
                         .build();
