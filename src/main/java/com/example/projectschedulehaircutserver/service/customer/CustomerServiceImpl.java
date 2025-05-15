@@ -55,7 +55,7 @@ public class CustomerServiceImpl implements CustomerService{
                 customer.setAddress(customerDTO.getAddress());
                 customer.setPhone(customerDTO.getPhone());
                 customer.setIsBlocked(false);
-                customer.setAccount(savedAccount);
+//                customer.setAccount(savedAccount);
 
                 customerRepo.save(customer);
         } catch (Exception e) {
@@ -66,7 +66,7 @@ public class CustomerServiceImpl implements CustomerService{
     @Override
     public CustomerDTO getInformationCustomer(String username) throws CustomerException {
         try {
-            Customer customer = customerRepo.findByCustomerUsername(username)
+            Customer customer = customerRepo.findCustomerByUsername(username)
                     .orElseThrow(() -> new CustomerException("Không tìm thấy thông tin khách hàng"));
 
             return CustomerDTO.builder()
@@ -94,7 +94,7 @@ public class CustomerServiceImpl implements CustomerService{
 
                 updateCustomerFields(customer, customerDTO);
 
-                updateAssociatedAccount(customer, customerDTO);
+//                updateAssociatedAccount(customer, customerDTO);
 
                 customerRepo.save(customer);
                 return "Cập nhật thành công";
@@ -122,22 +122,22 @@ public class CustomerServiceImpl implements CustomerService{
         }
     }
 
-    private void updateAssociatedAccount(Customer customer, CustomerDTO dto) {
-        Account account = customer.getAccount();
-        if (account != null) {
-            if(dto.getEmail() != null && !dto.getEmail().isEmpty()){
-                account.setEmail(dto.getEmail());
-            }
-            if (dto.getPhone() != null && !dto.getPhone().isEmpty()) {
-                account.setPhone(dto.getPhone());
-            }
-            if (dto.getAddress() != null && !dto.getAddress().isEmpty()) {
-                account.setAddress(dto.getAddress());
-            }
-            if (dto.getAvatar() != null && !dto.getAvatar().isEmpty()) {
-                account.setAvatar(dto.getAvatar());
-            }
-            accountRepo.save(account);
-        }
-    }
-    }
+//    private void updateAssociatedAccount(Customer customer, CustomerDTO dto) {
+//        Account account = customer.getAccount();
+//        if (account != null) {
+//            if(dto.getEmail() != null && !dto.getEmail().isEmpty()){
+//                account.setEmail(dto.getEmail());
+//            }
+//            if (dto.getPhone() != null && !dto.getPhone().isEmpty()) {
+//                account.setPhone(dto.getPhone());
+//            }
+//            if (dto.getAddress() != null && !dto.getAddress().isEmpty()) {
+//                account.setAddress(dto.getAddress());
+//            }
+//            if (dto.getAvatar() != null && !dto.getAvatar().isEmpty()) {
+//                account.setAvatar(dto.getAvatar());
+//            }
+//            accountRepo.save(account);
+//        }
+//    }
+}

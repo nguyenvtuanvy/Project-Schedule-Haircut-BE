@@ -92,7 +92,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleRuntimeException(RuntimeException ex) {
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
-                "Lỗi hệ thống: " + ex.getMessage()
+                ex.getMessage()
         );
     }
 
@@ -127,6 +127,11 @@ public class GlobalExceptionHandler {
                 "Lỗi hệ thống khi truy cập dữ liệu: " + ex.getMessage()
         );
     }
+    @ExceptionHandler(AccountBlockedException.class)
+    public ResponseEntity<Object> handleBlockedAccount(AccountBlockedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN,  ex.getMessage());
+    }
+
 
     // Phương thức hỗ trợ tạo response
     private ResponseEntity<Object> buildResponse(HttpStatus status, String message) {

@@ -1,6 +1,8 @@
 package com.example.projectschedulehaircutserver.service.account;
 
 import com.example.projectschedulehaircutserver.dto.AccountDTO;
+import com.example.projectschedulehaircutserver.entity.Account;
+import com.example.projectschedulehaircutserver.entity.Customer;
 import com.example.projectschedulehaircutserver.repository.AccountRepo;
 import com.example.projectschedulehaircutserver.response.AccountManagementResponse;
 import lombok.AllArgsConstructor;
@@ -61,6 +63,15 @@ public class AccountServiceImpl implements AccountService {
         } catch (DataAccessException e) {
             throw new RuntimeException("Lỗi khi truy vấn danh sách tài khoản", e);
         }
+    }
+
+    @Override
+    public void changeIsBlockedAccount(Boolean isBlocked, Integer accountId) {
+        Account account = accountRepo.findAccountById(accountId).orElseThrow(() -> new RuntimeException("Account không tồn tại"));
+
+        account.setIsBlocked(isBlocked);
+
+        accountRepo.save(account);
     }
 
     private Long toLong(Object obj) {

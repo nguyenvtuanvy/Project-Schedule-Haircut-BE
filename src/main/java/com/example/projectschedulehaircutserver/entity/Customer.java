@@ -13,15 +13,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @Table(name = "customer")
+@PrimaryKeyJoinColumn(name = "id")
 public class Customer extends Account{
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
-    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
-
     @OneToOne(fetch = FetchType.LAZY, mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     private Cart cart;
 

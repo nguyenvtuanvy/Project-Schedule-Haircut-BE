@@ -14,7 +14,11 @@ import java.util.Optional;
 import java.util.Set;
 
 public interface EmployeeRepo extends JpaRepository<Employee, Integer> {
-    Optional<Employee> findEmployeeByAccount_UserName(String account_userName);
+//    Optional<Employee> findEmployeeByAccount_UserName(String account_userName);
+
+    @Query("SELECT e FROM Employee e WHERE e.userName = :username")
+    Optional<Employee> findByEmployeeUsername(@Param("username") String username);
+
 
     @Query("SELECT new com.example.projectschedulehaircutserver.dto.EmployeeDTO(e.id, e.userName, e.fullName, e.age, e.address, e.phone, e.avatar, " +
             "CASE WHEN e.employeeType = 'HAIR_STYLIST_STAFF' THEN 0 ELSE 1 END) " +
@@ -62,4 +66,9 @@ public interface EmployeeRepo extends JpaRepository<Employee, Integer> {
             "AND o.status IN (0, 1) " +
             "ORDER BY o.orderStartTime ASC")
     List<Object[]> getRawAppointmentsData(@Param("employeeId") Integer employeeId);
+
+    @Query("select e FROM Employee e WHERE e.id = :employeeId")
+    Optional<Employee> findByAccountId(@Param("employeeId") Integer employeeId);
+
+
 }

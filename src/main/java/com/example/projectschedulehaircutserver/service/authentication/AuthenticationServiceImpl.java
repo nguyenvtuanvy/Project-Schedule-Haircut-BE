@@ -48,12 +48,13 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     private final EmailService emailService;
 
     @Override
+    @Transactional
     public String registerUser(RegisterRequest request) throws RegisterException {
         try {
             Role role = roleRepo.findById(2)
                     .orElseThrow(() -> new RegisterException("Không tìm thấy vai trò mặc định."));
 
-            if (request.getUserName() != null && customerRepo.findCustomerByAccount_UserName(request.getUserName()).isPresent()) {
+            if (request.getUserName() != null && customerRepo.findCustomerByUsername(request.getUserName()).isPresent()) {
                 throw new RegisterException("UserName đã được sử dụng");
             }
 
@@ -65,20 +66,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
                 throw new RegisterException("Email đã được sử dụng");
             }
 
-            Account account = Account.builder()
-                    .fullName(request.getFullName())
-                    .userName(request.getUserName())
-                    .email(request.getEmail())
-                    .avatar("https://i.postimg.cc/pVs3qTMy/image.png")
-                    .password(encoder.encode(request.getPassword()))
-                    .age(request.getAge())
-                    .address(request.getAddress())
-                    .role(role)
-                    .phone(request.getPhone())
-                    .build();
-
-            Account savedAccount = accountRepo.save(account);
-
+            // Tạo customer như một account
             Customer customer = new Customer();
             customer.setFullName(request.getFullName());
             customer.setUserName(request.getUserName());
@@ -90,19 +78,21 @@ public class AuthenticationServiceImpl implements AuthenticationService{
             customer.setAddress(request.getAddress());
             customer.setPhone(request.getPhone());
             customer.setIsBlocked(false);
-            customer.setAccount(savedAccount);
 
+            customerRepo.save(customer);
+
+            // Gán cart cho customer
             Cart cart = Cart.builder()
                     .customer(customer)
                     .build();
-
-            customerRepo.save(customer);
             cartRepo.save(cart);
+
             return "Đăng ký thành công";
         } catch (DataIntegrityViolationException e) {
             throw new RegisterException("Lỗi hệ thống khi đăng ký");
         }
     }
+
 
 
     @Override
@@ -117,9 +107,16 @@ public class AuthenticationServiceImpl implements AuthenticationService{
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
+        if (userDetails instanceof Account account) {
+            if (Boolean.TRUE.equals(account.getIsBlocked())) {
+                throw new AccountBlockedException("Tài khoản của bạn bị khóa.");
+            }
+        }
+
         if (jwtService.isTokenInWhiteList(userDetails.getUsername())){
             throw new AlreadyLoggedInException("Tài khoản đang được đăng nhập ở một nơi khác.");
         }
+
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 

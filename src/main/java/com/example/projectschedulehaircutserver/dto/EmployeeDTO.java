@@ -34,6 +34,7 @@ public class EmployeeDTO {
         this.type = type;
     }
 
+
     public EmployeeDTO(Integer id, String userName, String fullName, Integer age, String address, String phone, String avatar, Integer type) {
         this.id = id;
         this.userName = userName;

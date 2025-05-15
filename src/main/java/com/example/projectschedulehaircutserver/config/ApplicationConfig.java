@@ -30,27 +30,24 @@ import java.util.Optional;
 public class ApplicationConfig {
     private final CustomerRepo customerRepo;
     private final EmployeeRepo employeeRepo;
+    private final AccountRepo accountRepo;
     private final ManagerRepo managerRepo;
 
     @Bean
-    public UserDetailsService userDetailsService(){
+    public UserDetailsService userDetailsService() {
         return username -> {
+            // Ưu tiên kiểm tra Manager (vì riêng biệt)
             Optional<Manager> manager = managerRepo.findManagerByUseName(username);
-            if (manager.isPresent()){
+            if (manager.isPresent()) {
                 return manager.get();
-            } else {
-                Optional<Employee> employee = employeeRepo.findEmployeeByAccount_UserName(username);
-                if (employee.isPresent()){
-                    return employee.get();
-                } else{
-                    Optional<Customer> customer = customerRepo.findCustomerByAccount_UserName(username);
-                    if (customer.isPresent()){
-                        return customer.get();
-                    } else {
-                        throw new UsernameNotFoundException("username not found");
-                    }
-                }
             }
+
+            Optional<Account> account = accountRepo.findByUserName(username);
+            if (account.isPresent()) {
+                return account.get();
+            }
+
+            throw new UsernameNotFoundException("Username not found");
         };
     }
 

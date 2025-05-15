@@ -12,6 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @Table(name = "employee")
+@PrimaryKeyJoinColumn(name = "id")
 public class Employee extends Account {
     public enum EmployeeType {
         HAIR_STYLIST_STAFF,
@@ -21,10 +22,6 @@ public class Employee extends Account {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EmployeeType employeeType;
-
-    @OneToOne(cascade = CascadeType.MERGE, fetch = FetchType.LAZY)
-    @JoinColumn(name = "account_id", nullable = false)
-    private Account account;
 
     @ManyToMany(mappedBy = "employees", fetch = FetchType.LAZY)
     private Set<Orders> orders = new HashSet<>();

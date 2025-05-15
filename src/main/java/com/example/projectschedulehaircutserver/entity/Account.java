@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Builder
 @Entity
 @Table(name = "Account")
-@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+@Inheritance(strategy = InheritanceType.JOINED)
 public class Account implements UserDetails {
     @Id
     @SequenceGenerator(
@@ -59,7 +59,7 @@ public class Account implements UserDetails {
     private String avatar;
 
     @Column(name = "is_blocked", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private Boolean isBlocked = false;
+    private Boolean isBlocked;
 
     @CreationTimestamp
     @Column(nullable = false)
@@ -84,11 +84,6 @@ public class Account implements UserDetails {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Customer customer;
-
-    @OneToOne(fetch = FetchType.LAZY, mappedBy = "account")
-    private Employee employee;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
