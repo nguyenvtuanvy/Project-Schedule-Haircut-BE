@@ -1,9 +1,13 @@
 package com.example.projectschedulehaircutserver.service.time;
 
 import com.example.projectschedulehaircutserver.dto.TimeDTO;
+import com.example.projectschedulehaircutserver.entity.Employee;
+import com.example.projectschedulehaircutserver.entity.Time;
+import com.example.projectschedulehaircutserver.repository.EmployeeRepo;
 import com.example.projectschedulehaircutserver.repository.TimeRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -17,6 +21,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class TimeServiceImpl implements TimeService{
     private final TimeRepo timeRepo;
+    private final EmployeeRepo employeeRepo;
 
     @Override
     public Set<TimeDTO> findTimeByEmployeeIdAndOrderDate(Integer employeeId, LocalDate orderDate) {
@@ -44,6 +49,50 @@ public class TimeServiceImpl implements TimeService{
                 .sorted(Comparator.comparingInt(TimeDTO::getId))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
+
+    @Override
+    public Set<TimeDTO> findAllTimes() {
+        return timeRepo.findAllTimes();
+    }
+
+    @Override
+    @Transactional
+    public void addTimeForEmployee(Integer timeId, Integer employeeId) {
+        Employee employee = employeeRepo.findById(employeeId).orElseThrow();
+
+        Time time = timeRepo.findById(timeId).orElseThrow();
+
+        // Kiểm tra xem employee đã có khung giờ này chưa
+        if (employee.getTimes().contains(time)) {
+            throw new RuntimeException("Nhân viên đã có thời gian này rồi");
+        }
+
+        // Thêm khung giờ vào nhân viên
+        employee.getTimes().add(time);
+        time.getEmployees().add(employee);
+
+        // Lưu thay đổi
+        employeeRepo.save(employee);
+        timeRepo.save(time);
+    }
+
+    @Override
+    @Transactional
+    public void removeTimeFromEmployee(Integer timeId, Integer employeeId) {
+        Employee employee = employeeRepo.findById(employeeId).orElseThrow();
+
+        Time time = timeRepo.findById(timeId).orElseThrow();
+        if (!employee.getTimes().contains(time)) {
+            throw new RuntimeException("Nhân viên không có khung giờ này");
+        }
+
+        employee.getTimes().remove(time);
+        time.getEmployees().remove(employee);
+
+        employeeRepo.save(employee);
+        timeRepo.save(time);
+    }
+
 
 }
 

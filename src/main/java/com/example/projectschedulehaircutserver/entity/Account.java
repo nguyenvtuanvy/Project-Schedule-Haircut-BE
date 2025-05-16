@@ -23,15 +23,7 @@ import java.util.stream.Collectors;
 @Inheritance(strategy = InheritanceType.JOINED)
 public class Account implements UserDetails {
     @Id
-    @SequenceGenerator(
-            name = "accounts_sequence",
-            sequenceName = "accounts_sequence",
-            allocationSize = 1
-    )
-    @GeneratedValue(
-            strategy = GenerationType.AUTO,
-            generator = "accounts_sequence"
-    )
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(name = "username", unique = true, nullable = false, length = 20)

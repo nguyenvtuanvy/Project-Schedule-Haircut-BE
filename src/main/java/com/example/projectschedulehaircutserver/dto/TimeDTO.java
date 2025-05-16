@@ -13,4 +13,9 @@ public class TimeDTO {
     private Integer id;
     private String timeName;
     private Integer isBusy;
+
+    public TimeDTO(Integer id, String timeName) {
+        this.id = id;
+        this.timeName = timeName;
+    }
 }

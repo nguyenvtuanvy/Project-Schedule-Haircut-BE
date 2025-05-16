@@ -57,6 +57,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         employee.setAddress(employeeDTO.getAddress());
         employee.setPhone(employeeDTO.getPhone());
         employee.setRole(role);
+        employee.setIsBlocked(false);
         employee.setAvatar("https://i.postimg.cc/pVs3qTMy/image.png");
         employee.setEmployeeType(employeeDTO.getType() == 0
                 ? Employee.EmployeeType.HAIR_STYLIST_STAFF

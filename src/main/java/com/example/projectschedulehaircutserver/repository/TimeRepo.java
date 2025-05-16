@@ -36,4 +36,7 @@ public interface TimeRepo extends JpaRepository<Time, Integer> {
             @Param("employeeId") Integer employeeId,
             @Param("orderDate") LocalDate orderDate
     );
+
+    @Query("select new com.example.projectschedulehaircutserver.dto.TimeDTO(t.id, t.timeName) from Time t")
+    Set<TimeDTO> findAllTimes();
 }
