@@ -90,15 +90,6 @@ public class EmployeeServiceImpl implements EmployeeService{
             }
         }
 
-//        Account account = employee.getAccount();
-//        account.setFullName(employeeDTO.getFullName());
-//        account.setEmail(employeeDTO.getEmail());
-//        account.setPhone(employeeDTO.getPhone());
-//        account.setAge(employeeDTO.getAge());
-//        account.setAddress(employeeDTO.getAddress());
-//
-//        accountRepo.save(account);
-
         employee.setAge(employeeDTO.getAge());
         employee.setEmail(employeeDTO.getEmail());
         employee.setPhone(employeeDTO.getPhone());

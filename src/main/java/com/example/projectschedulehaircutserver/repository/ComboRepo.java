@@ -6,6 +6,7 @@ import com.example.projectschedulehaircutserver.response.ComboManagementResponse
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.security.core.parameters.P;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,4 +35,7 @@ public interface ComboRepo extends JpaRepository<Combo, Integer> {
     @Query("SELECT DISTINCT c FROM Combo c LEFT JOIN FETCH c.services ORDER BY c.id ASC")
     List<Combo> getAllCombos();
 
+
+    @Query("SELECT COUNT(c) > 0 FROM Combo c WHERE c.name = :name")
+    boolean existsByName(@Param("name") String name);
 }

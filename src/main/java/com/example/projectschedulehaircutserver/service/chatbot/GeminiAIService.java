@@ -52,8 +52,6 @@ public class GeminiAIService {
         }
 
         Map<String, Object> responseBody = response.getBody();
-
-        // Lấy phần candidates đầu tiên
         List<Map<String, Object>> candidates = (List<Map<String, Object>>) responseBody.get("candidates");
         if (candidates == null || candidates.isEmpty()) {
             throw new RuntimeException("Không có candidates trong response");
@@ -61,14 +59,12 @@ public class GeminiAIService {
 
         Map<String, Object> firstCandidate = candidates.get(0);
         Map<String, Object> content = (Map<String, Object>) firstCandidate.get("content");
-
-        // Lấy danh sách parts
         List<Map<String, Object>> parts = (List<Map<String, Object>>) content.get("parts");
         if (parts == null || parts.isEmpty()) {
             throw new RuntimeException("Không có parts trong content");
+
         }
 
-        // Lấy text từ part đầu tiên
         String text = (String) parts.get(0).get("text");
         return text != null ? text.trim() : "";
     }

@@ -19,7 +19,7 @@ public interface OrderRepo extends JpaRepository<Orders, Integer> {
             "o.order_date, " +
             "o.order_start_time, " +
             "o.order_end_time, " +
-            "e.fullname AS employee_fullname, " +
+            "a.fullname AS employee_fullname, " +
             "c2.name AS combo_name, " +
             "s.name AS service_name, " +
             "o.total_price, " +
@@ -29,6 +29,7 @@ public interface OrderRepo extends JpaRepository<Orders, Integer> {
             "JOIN orderitem oi ON o.id = oi.order_id " +
             "JOIN order_employee oe ON o.id = oe.order_id " +
             "JOIN employee e ON oe.employee_id = e.id " +
+            "JOIN Account a ON a.id = e.id " +
             "LEFT JOIN service s ON oi.service_id = s.id " +
             "LEFT JOIN combo c2 ON oi.combo_id = c2.id " +
             "WHERE c.id = :customerId AND o.status = :status", nativeQuery = true)

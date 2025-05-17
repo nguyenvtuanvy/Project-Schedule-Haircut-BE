@@ -42,4 +42,6 @@ public interface ServiceRepo extends JpaRepository<Service, Integer> {
             "ORDER BY s.id ASC")
     Set<ServiceManagementResponse> getAllServices();
 
+    @Query("SELECT COUNT(c) > 0 FROM Combo c JOIN c.services s WHERE s.id = :serviceId")
+    boolean isServiceUsedInAnyCombo(@Param("serviceId") Integer serviceId);
 }

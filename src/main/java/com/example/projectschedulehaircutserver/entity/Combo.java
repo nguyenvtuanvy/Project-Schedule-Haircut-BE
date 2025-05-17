@@ -38,11 +38,12 @@ public class Combo {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "combo_service",
             joinColumns = @JoinColumn(name = "combo_id"),
             inverseJoinColumns = @JoinColumn(name = "service_id"))
     private Set<Service> services = new HashSet<>();
+
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "combo")
     private Set<OrderItem> orderItems = new HashSet<>();
