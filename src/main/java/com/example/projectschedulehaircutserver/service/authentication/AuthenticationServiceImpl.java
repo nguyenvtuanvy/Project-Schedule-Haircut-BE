@@ -54,16 +54,16 @@ public class AuthenticationServiceImpl implements AuthenticationService{
             Role role = roleRepo.findById(2)
                     .orElseThrow(() -> new RegisterException("Không tìm thấy vai trò mặc định."));
 
-            if (request.getUserName() != null && customerRepo.findCustomerByUsername(request.getUserName()).isPresent()) {
-                throw new RegisterException("UserName đã được sử dụng");
+            if (accountRepo.existsByUserName(request.getUserName())) {
+                throw new RuntimeException("Tên đăng nhập đã được sử dụng");
             }
 
-            if (request.getPhone() != null && customerRepo.findCustomerByPhone(request.getPhone()).isPresent()) {
-                throw new RegisterException("Số điện thoại đã được sử dụng");
+            if (accountRepo.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email đã được sử dụng");
             }
 
-            if (request.getEmail() != null && customerRepo.findCustomerByEmail(request.getEmail()).isPresent()) {
-                throw new RegisterException("Email đã được sử dụng");
+            if (accountRepo.existsByPhone(request.getPhone())) {
+                throw new RuntimeException("Số điện thoại đã được sử dụng");
             }
 
             // Tạo customer như một account
@@ -161,7 +161,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         }
 
         Customer customer = customerRepo.findCustomerByEmail(email)
-                .orElseThrow(() -> new CustomerException("Email không tồn tại trong hệ thống"));
+                .orElseThrow(() -> new CustomerException("Email không tồn tại hoặc không có quyền đổi mật khẩu"));
 
         // Check request limit
         if (redisService.getOTPRequestCount(email) >= 3) {
