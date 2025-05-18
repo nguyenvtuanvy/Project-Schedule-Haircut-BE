@@ -187,20 +187,31 @@ public class AuthenticationServiceImpl implements AuthenticationService{
                 .substring(0, length)
                 .toUpperCase();
     }
- 
 
+
+    // Method changePassword
     @Override
     public String changePassword(String email, String code, String newPassword) throws CustomerException {
         String savedCode = redisService.getOTP(email);
-        if (savedCode == null) throw new CustomerException("Mã xác thực hết hạn hoặc không tồn tại");
-        if (!savedCode.equals(code)) throw new CustomerException("Mã xác thực không đúng");
+        if (savedCode == null) {
+            throw new CustomerException("Mã xác thực hết hạn hoặc không tồn tại");
+        }
+        if (!savedCode.equals(code)) {
+            throw new CustomerException("Mã xác thực không đúng");
+        }
 
         Customer customer = customerRepo.findCustomerByEmail(email)
                 .orElseThrow(() -> new CustomerException("Không tìm thấy tài khoản với email này"));
+
+        if (encoder.matches(newPassword, customer.getPassword())) {
+            throw new CustomerException("Mật khẩu mới không được trùng với mật khẩu cũ");
+        }
+
         customer.setPassword(encoder.encode(newPassword));
         customerRepo.save(customer);
 
         redisService.deleteOTP(email);
+        redisService.deleteOTPRequestCount(email);
 
         return "Đổi mật khẩu thành công";
     }

@@ -28,12 +28,12 @@ public class RedisService {
     }
 
     public String getOTP(String email) {
-        String key = "reset:" + email;
+        String key = otpPrefix + email;
         return redisTemplate.opsForValue().get(key);
     }
 
     public void deleteOTP(String email) {
-        String key = "reset:" + email;
+        String key = otpPrefix + email;
         redisTemplate.delete(key);
     }
 
@@ -46,7 +46,12 @@ public class RedisService {
     public void incrementOTPRequestCount(String email) {
         String key = otpCountPrefix + email;
         redisTemplate.opsForValue().increment(key);
-        redisTemplate.expire(key, 24, TimeUnit.HOURS);
+        redisTemplate.expire(key, 30, TimeUnit.MINUTES);
+    }
+
+    public void deleteOTPRequestCount(String email) {
+        String key = otpCountPrefix + email;
+        redisTemplate.delete(key);
     }
 }
 
