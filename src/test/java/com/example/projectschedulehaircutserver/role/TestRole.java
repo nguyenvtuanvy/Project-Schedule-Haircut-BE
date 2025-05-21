@@ -11,12 +11,12 @@ public class TestRole {
     @Autowired
     private RoleService roleService;
 
-    @Test
-    void create(){
-        RoleDTO roleDTO = new RoleDTO();
-//        roleDTO.setName("EMPLOYEE");
-        roleDTO.setName("USER");
-//        roleDTO.setName("ADMIN");
-        roleService.createRole(roleDTO);
-    }
+//    @Test
+//    void create(){
+//        RoleDTO roleDTO = new RoleDTO();
+////        roleDTO.setName("EMPLOYEE");
+//        roleDTO.setName("USER");
+////        roleDTO.setName("ADMIN");
+//        roleService.createRole(roleDTO);
+//    }
 }

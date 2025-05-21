@@ -17,6 +17,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.*;
@@ -33,7 +34,7 @@ public class EmployeeServiceImpl implements EmployeeService{
     @Override
     public void createEmployee(EmployeeDTO employeeDTO) {
         Role role = roleRepo.findById(1)
-                .orElseThrow(() -> new RuntimeException("No roles specified."));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy role-"));
 
         if (accountRepo.existsByUserName(employeeDTO.getUserName())) {
             throw new RuntimeException("Tên đăng nhập đã được sử dụng");
@@ -68,9 +69,10 @@ public class EmployeeServiceImpl implements EmployeeService{
     }
 
     @Override
+    @Transactional
     public void updateEmployee(Integer id, EmployeeDTO employeeDTO) {
         Employee employee = employeeRepo.findByAccountId(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy nhân viên với id: " + id));
 
         if (!employee.getUsername().equals(employeeDTO.getUserName())) {
             if (accountRepo.existsByUserName(employeeDTO.getUserName())) {

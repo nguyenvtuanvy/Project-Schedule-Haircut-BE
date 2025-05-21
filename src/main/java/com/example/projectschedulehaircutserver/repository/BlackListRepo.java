@@ -17,5 +17,5 @@ public interface BlackListRepo extends JpaRepository<BlackList,Long> {
     @Transactional
     @Modifying
     @Query("DELETE FROM BlackList b WHERE b.createdAt < :cutoffDate")
-    void deleteByCreatedAtBefore(LocalDateTime cutoffDate);
+    void deleteByCreatedAtBefore(@Param("cutoffDate") LocalDateTime cutoffDate);
 }
