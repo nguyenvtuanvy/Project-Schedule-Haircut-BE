@@ -10,6 +10,7 @@ import com.example.projectschedulehaircutserver.request.AllOrderEmployeeAndDateR
 import com.example.projectschedulehaircutserver.request.OrderScheduleHaircutRequest;
 import com.example.projectschedulehaircutserver.service.email.EmailService;
 import lombok.AllArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -34,6 +37,7 @@ public class OrderServiceImpl implements OrderService{
     private final CustomerRepo customerRepo;
     private final EmailService emailService;
 
+    // đặt lịch
     @Override
     @Transactional
     public String bookingScheduleHaircut(OrderScheduleHaircutRequest request) throws LoginException, OrderException {
@@ -46,6 +50,17 @@ public class OrderServiceImpl implements OrderService{
                     employees.add(employeeRepo.findById(eid).orElseThrow());
                 });
 
+                if (orderRepo.existsByCustomerId(customer.getId())){
+                    throw new OrderException("Bạn đang có lịch hẹn chưa hoàn thành, vui lòng hủy lịch trước hoặc thanh toán khi đặt lịch mới");
+                }
+
+                LocalTime calculatedEndTime = request.getOrderStartTime().plusMinutes(request.getHaircutTime());
+
+                if (calculatedEndTime.isAfter(LocalTime.of(20, 0))) {
+                    throw new OrderException(
+                            "Thời gian kết thúc (" + calculatedEndTime + ") vượt quá giờ làm việc (20:00). Vui lòng chọn thời gian sớm hơn."
+                    );
+                }
 
                 // Kiểm tra lịch trùng
                 for (Employee employee : employees) {
@@ -76,7 +91,7 @@ public class OrderServiceImpl implements OrderService{
                 Orders orders = Orders.builder()
                         .orderDate(request.getOrderDate())
                         .orderStartTime(request.getOrderStartTime())
-                        .orderEndTime(request.getOrderStartTime().plusMinutes(request.getHaircutTime()))
+                        .orderEndTime(calculatedEndTime)
                         .status(0)
                         .haircutTime(request.getHaircutTime())
                         .totalPrice(totalOrder)
@@ -132,8 +147,9 @@ public class OrderServiceImpl implements OrderService{
                 }
 
                 Cart cart = cartRepo.findCartByCustomerId(customer.getId()).orElseThrow();
-
                 cartItemRepo.clearCartItemsByCartId(cart.getId());
+
+                sendBookingEmailsToEmployees(saveOrder, customer, employees);
 
                 return "Đặt Lịch Cắt Tóc Thành Công !!!";
             } catch (OrderException e) {
@@ -146,6 +162,37 @@ public class OrderServiceImpl implements OrderService{
         }
     }
 
+    // gửi email đến nhân viên
+    private void sendBookingEmailsToEmployees(Orders order, Customer customer, Set<Employee> employees) {
+        String bookingDetails = buildBookingDetails(order, customer);
+
+        employees.forEach(employee -> {
+            try {
+                emailService.sendBookingNotificationToEmployee(
+                        employee.getEmail(),
+                        employee.getFullName(),
+                        customer.getFullName(),
+                        bookingDetails
+                );
+            } catch (Exception e) {
+                throw new RuntimeException("Lỗi khi gửi email đến nhân viên");
+            }
+        });
+    }
+
+    private String buildBookingDetails(Orders order, Customer customer) {
+        return "<p><strong>Thông tin lịch hẹn:</strong></p>" +
+                "<ul>" +
+                "<li><strong>Khách hàng:</strong> " + customer.getFullName() + "</li>" +
+                "<li><strong>Số điện thoại:</strong> " + customer.getPhone() + "</li>" +
+                "<li><strong>Ngày:</strong> " + order.getOrderDate() + "</li>" +
+                "<li><strong>Giờ bắt đầu:</strong> " + order.getOrderStartTime() + "</li>" +
+                "<li><strong>Giờ kết thúc:</strong> " + order.getOrderEndTime() + "</li>" +
+                "<li><strong>Tổng thanh toán:</strong> " + order.getTotalPrice() + " VNĐ</li>" +
+                "</ul>";
+    }
+
+    // lịch hẹn chờ xử lý
     @Override
     public Set<OrderDTO> showOrderByCustomerStatus_0() throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -161,6 +208,7 @@ public class OrderServiceImpl implements OrderService{
         }
     }
 
+    // lịch hẹn đã được xác nhận
     @Override
     public Set<OrderDTO> showOrderByCustomerStatus_1() throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -176,6 +224,7 @@ public class OrderServiceImpl implements OrderService{
         }
     }
 
+    // lịch hẹn đã thanh toán thành công
     @Override
     public Set<OrderDTO> showOrderByCustomerStatus_2() throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -191,6 +240,7 @@ public class OrderServiceImpl implements OrderService{
         }
     }
 
+    // cập nhật trạng thái lịch hẹn
     @Override
     @Transactional
     public void updateBookingStatus(Integer bookingId, Integer status) {
@@ -212,7 +262,7 @@ public class OrderServiceImpl implements OrderService{
                     bookingDetails,
                     employeeName
             );
-        } else if (status == 2) {
+        } else if (status == -1) {
             emailService.sendBookingCancellation(
                     order.getCustomer().getEmail(),
                     order.getCustomer().getFullName(),
@@ -226,6 +276,8 @@ public class OrderServiceImpl implements OrderService{
         orderRepo.save(order);
     }
 
+
+    // build thông tin lịch hẹn
     private String buildBookingDetails(Orders order) {
         return "<ul>" +
                 "<li><strong>Mã lịch hẹn:</strong> " + order.getId() + "</li>" +
@@ -236,6 +288,7 @@ public class OrderServiceImpl implements OrderService{
                 "</ul>";
     }
 
+    //  Trích xuất tên các dịch vụ và combo có trong đơn hàng để hiển thị trong email.
     private String getServiceNames(Orders order) {
         if (order == null || order.getOrderItems() == null) {
             return "<li>Không có thông tin dịch vụ</li>";
@@ -261,6 +314,7 @@ public class OrderServiceImpl implements OrderService{
         return sb.toString();
     }
 
+    // huỷ lịch
     @Override
     public void cancelBooking(Integer bookingId, Integer status) {
         Orders orders = orderRepo.findOrderByOrderId(bookingId).orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
@@ -269,6 +323,7 @@ public class OrderServiceImpl implements OrderService{
         orderRepo.save(orders);
     }
 
+    //
     @Override
     public Set<OrderDTO> findAllOrderByEmployeeAndDate(AllOrderEmployeeAndDateRequest request) throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -367,4 +422,58 @@ public class OrderServiceImpl implements OrderService{
     }
 
 
+    // Nhắc lịch trước 1 giờ (chạy mỗi phút)
+    @Scheduled(cron = "0 * * * * ?")
+    public void sendAppointmentReminders() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime oneHourLater = now.plusHours(1);
+
+        List<Orders> upcomingAppointments = orderRepo.findByStatusAndOrderDateAndOrderStartTimeBetween(
+                1, // lịch hẹn đã được xác nhận
+                oneHourLater.toLocalDate(),
+                oneHourLater.toLocalTime().minusMinutes(1),
+                oneHourLater.toLocalTime().plusMinutes(1)
+        );
+
+        upcomingAppointments.forEach(appointment -> {
+            String subject = "⏰ Nhắc lịch hẹn cắt tóc sắp tới";
+            String content = buildReminderContent(appointment);
+            emailService.send(appointment.getCustomer().getEmail(), subject, content);
+        });
+    }
+
+    private String buildReminderContent(Orders appointment) {
+        return "<p>Xin chào <strong>" + appointment.getCustomer().getFullName() + "</strong>,</p>" +
+                "<p>Bạn có lịch hẹn cắt tóc sau 1 giờ nữa:</p>" +
+                "<ul>" +
+                "<li><strong>Thời gian:</strong> " + appointment.getOrderStartTime() + " - " + appointment.getOrderEndTime() + "</li>" +
+                "<li><strong>Địa điểm:</strong> Salon của chúng tôi</li>" +
+                "</ul>" +
+                "<p>Vui lòng đến đúng giờ hẹn. Nếu không thể đến, vui lòng liên hệ salon để hủy/hỗn lịch.</p>";
+    }
+
+    // Huỷ lịch chưa thanh toán vào cuối ngày (23:50 mỗi ngày)
+    @Scheduled(cron = "0 50 23 * * ?")
+    public void cancelUnpaidAppointments() {
+        LocalDate today = LocalDate.now();
+        List<Orders> unpaidAppointments = orderRepo.findByStatusAndOrderDateBefore(
+                1, //  đã xác nhận nhưng chưa thanh toán
+                today
+        );
+
+        unpaidAppointments.forEach(appointment -> {
+            appointment.setStatus(-1);
+            orderRepo.save(appointment);
+
+            String subject = "❌ Lịch hẹn đã bị huỷ do không thanh toán";
+            String content = buildCancellationContent(appointment);
+            emailService.send(appointment.getCustomer().getEmail(), subject, content);
+        });
+    }
+
+    private String buildCancellationContent(Orders appointment) {
+        return "<p>Xin chào <strong>" + appointment.getCustomer().getFullName() + "</strong>,</p>" +
+                "<p>Lịch hẹn của bạn ngày " + appointment.getOrderDate() + " đã bị huỷ do không hoàn thành thanh toán.</p>" +
+                "<p>Nếu đây là sự nhầm lẫn, vui lòng liên hệ salon để được hỗ trợ.</p>";
+    }
 }

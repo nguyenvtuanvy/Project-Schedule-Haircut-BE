@@ -21,13 +21,16 @@ public class ProductServiceImpl implements ProductService{
     private final ServiceRepo serviceRepo;
     private final ImageUploadService imageUploadService;
     private final CategoryRepo categoryRepo;
+
+    // lấy danh sách dịch vụ
     @Override
     public Set<ServiceDTO> findAllService() {
         return serviceRepo.findAllService();
     }
 
+    // lấy danh sách dịch vụ từ combo
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public Set<ShowAllServiceByComboIdResponse> findAllServiceByComboId(Integer id) {
         List<Object[]> objects = serviceRepo.findAllServiceByComboId(id);
 
@@ -36,6 +39,7 @@ public class ProductServiceImpl implements ProductService{
                 .collect(Collectors.toSet());
     }
 
+    // lấy danh sách dịch vụ từ loại dịch vụ
     @Override
     public Set<ServiceDTO> findAllServiceByCategoryId(Integer categoryId) {
         return serviceRepo.findAllServiceByCategoryId(categoryId).stream()
@@ -43,6 +47,7 @@ public class ProductServiceImpl implements ProductService{
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    // lấy danh sách dịch vụ dành cho management
     @Override
     public Set<ServiceManagementResponse> getAllServices() {
         try {
@@ -56,14 +61,15 @@ public class ProductServiceImpl implements ProductService{
         }
     }
 
+    // tạo mới dịch vụ
     @Override
+    @Transactional
     public void createService(ServiceDTO serviceDTO) throws IOException {
         // 1. Upload ảnh lên Cloudinary
         String imageUrl = imageUploadService.uploadImage(serviceDTO.getFile());
 
         Category category = categoryRepo.findById(Long.valueOf(serviceDTO.getCategoryId())).orElseThrow();
 
-        // 2. Tạo entity để lưu vào DB
         com.example.projectschedulehaircutserver.entity.Service service = new com.example.projectschedulehaircutserver.entity.Service();
         service.setName(serviceDTO.getName());
         service.setPrice(serviceDTO.getPrice());
@@ -71,10 +77,10 @@ public class ProductServiceImpl implements ProductService{
         service.setImage(imageUrl);
         service.setCategory(category);
 
-        // 3. Lưu vào database
         serviceRepo.save(service);
     }
 
+    // cập nhật dịch vụ
     @Override
     @Transactional
     public void updateService(ServiceDTO serviceDTO) throws IOException {
@@ -107,10 +113,10 @@ public class ProductServiceImpl implements ProductService{
         serviceRepo.save(existingService);
     }
 
+    // xóa dịch vụ
     @Override
     @Transactional
     public void deleteService(Integer serviceId) {
-        // 1. Kiểm tra service có tồn tại không
         if (!serviceRepo.existsById(serviceId)) {
             throw new NoSuchElementException("Không tìm thấy dịch vụ với ID: " + serviceId);
         }

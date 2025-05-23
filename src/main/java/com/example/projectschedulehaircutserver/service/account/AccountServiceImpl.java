@@ -18,6 +18,7 @@ import java.util.NoSuchElementException;
 public class AccountServiceImpl implements AccountService {
     private final AccountRepo accountRepo;
 
+    // lấy danh sách tài khoản
     @Override
     public List<AccountManagementResponse> getAllAccounts() {
         try {
@@ -65,6 +66,7 @@ public class AccountServiceImpl implements AccountService {
         }
     }
 
+    // khoá hoặc mở khoá tài khoản
     @Override
     public void changeIsBlockedAccount(Boolean isBlocked, Integer accountId) {
         Account account = accountRepo.findAccountById(accountId).orElseThrow(() -> new RuntimeException("Account không tồn tại"));

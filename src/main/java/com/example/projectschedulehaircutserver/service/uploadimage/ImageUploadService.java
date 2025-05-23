@@ -14,12 +14,14 @@ public class ImageUploadService {
     @Autowired
     private Cloudinary cloudinary;
 
+    // Upload ảnh lên Cloudinary
     public String uploadImage(MultipartFile file) throws IOException {
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                 ObjectUtils.asMap("resource_type", "auto"));
         return uploadResult.get("secure_url").toString();
     }
 
+    // xóa ảnh từ Cloudinary
     public void deleteImage(String imageUrl) throws IOException {
         try {
             // Lấy public_id từ URL ảnh
@@ -34,6 +36,7 @@ public class ImageUploadService {
         }
     }
 
+    // Trích xuất public_id từ URL ảnh
     private String extractPublicIdFromUrl(String imageUrl) {
         try {
             // URL có dạng: https://res.cloudinary.com/<cloud_name>/image/upload/v<version>/<public_id>.<format>

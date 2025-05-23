@@ -37,15 +37,4 @@ public class VnPayController {
         return response;
     }
 
-//    @GetMapping("/return")
-//    public void handlePaymentReturn(
-//            HttpServletRequest request,
-//            HttpServletResponse response
-//    ) {
-//        try {
-//            vnPayService.processPaymentReturn(request, response);
-//        } catch (IOException e) {
-//            throw new RuntimeException("Payment return processing failed", e);
-//        }
-//    }
 }

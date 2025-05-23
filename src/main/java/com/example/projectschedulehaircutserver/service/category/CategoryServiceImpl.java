@@ -12,6 +12,7 @@ import java.util.Set;
 public class CategoryServiceImpl implements CategoryService{
     private final CategoryRepo categoryRepo;
 
+    // lấy danh sách loại dịch vụ
     @Override
     public Set<CategoryDTO> getAllCategory() {
         return categoryRepo.findAllCategories();

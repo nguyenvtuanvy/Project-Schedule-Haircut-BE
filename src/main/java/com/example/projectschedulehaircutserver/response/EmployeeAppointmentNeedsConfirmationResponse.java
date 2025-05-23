@@ -14,6 +14,7 @@ import java.util.List;
 public class EmployeeAppointmentNeedsConfirmationResponse {
     private Integer id;
     private String time;
+    private String date;
     private String customerName;
     private List<String> services;
     private Integer status;

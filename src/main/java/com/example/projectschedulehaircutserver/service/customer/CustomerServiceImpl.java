@@ -29,6 +29,8 @@ public class CustomerServiceImpl implements CustomerService{
     private AccountRepo accountRepo;
     private RoleRepo roleRepo;
     private PasswordEncoder encoder;
+
+    // tạo tài khoản khách hàng
     @Override
     public void createCustomer(CustomerDTO customerDTO) {
         try {
@@ -63,6 +65,7 @@ public class CustomerServiceImpl implements CustomerService{
         }
     }
 
+    // lấy thông tin tài khoản khách hàng
     @Override
     public CustomerDTO getInformationCustomer(String username) throws CustomerException {
         try {
@@ -84,6 +87,7 @@ public class CustomerServiceImpl implements CustomerService{
         }
     }
 
+    // cập nhật thông tin tài khoản khách hàng
     @Override
     @Transactional
     public String updateProfileCustomer(CustomerDTO customerDTO) throws LoginException {
@@ -93,8 +97,6 @@ public class CustomerServiceImpl implements CustomerService{
                 Customer customer = (Customer) authentication.getPrincipal();
 
                 updateCustomerFields(customer, customerDTO);
-
-//                updateAssociatedAccount(customer, customerDTO);
 
                 customerRepo.save(customer);
                 return "Cập nhật thành công";

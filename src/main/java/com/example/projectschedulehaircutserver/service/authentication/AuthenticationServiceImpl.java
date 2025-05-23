@@ -47,6 +47,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     private final RedisService redisService;
     private final EmailService emailService;
 
+    // đăng ký dành cho khách hàng
     @Override
     @Transactional
     public String registerUser(RegisterRequest request) throws RegisterException {
@@ -94,7 +95,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     }
 
 
-
+    // đăng nhập
     @Override
     public AuthenticationResponse authenticate(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
@@ -135,6 +136,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
                 .build();
     }
 
+    // lấy token từ refresh token
     @Override
     public AuthenticationResponse refreshToken(RefreshTokenRequest request) throws RefreshTokenException {
         String newAccessToken = jwtService.generateNewAccessTokenFromRefreshToken(request.getRefreshToken());
@@ -153,13 +155,9 @@ public class AuthenticationServiceImpl implements AuthenticationService{
                 .build();
     }
 
+    // yêu cầu đổi mật khẩu
     @Override
     public String requestChangePassword(String email) throws CustomerException {
-        // Validate email format first
-        if (!isValidEmail(email)) {
-            throw new CustomerException("Địa chỉ email không hợp lệ");
-        }
-
         Customer customer = customerRepo.findCustomerByEmail(email)
                 .orElseThrow(() -> new CustomerException("Email không tồn tại hoặc không có quyền đổi mật khẩu"));
 
@@ -177,10 +175,8 @@ public class AuthenticationServiceImpl implements AuthenticationService{
         return "Mã xác thực đã được gửi. Vui lòng kiểm tra email của bạn.";
     }
 
-    private boolean isValidEmail(String email) {
-        return email != null && email.matches("^[\\w-.]+@([\\w-]+\\.)+[\\w-]{2,4}$");
-    }
 
+    // render code
     private String generateRandomCode(int length) {
         return UUID.randomUUID().toString()
                 .replace("-", "")
@@ -189,7 +185,7 @@ public class AuthenticationServiceImpl implements AuthenticationService{
     }
 
 
-    // Method changePassword
+    // đổi mật khẩu
     @Override
     public String changePassword(String email, String code, String newPassword) throws CustomerException {
         String savedCode = redisService.getOTP(email);

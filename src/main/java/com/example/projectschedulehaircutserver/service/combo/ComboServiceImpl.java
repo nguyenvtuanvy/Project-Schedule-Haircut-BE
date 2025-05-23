@@ -24,11 +24,13 @@ public class ComboServiceImpl implements ComboService {
     private final ImageUploadService imageUploadService;
     private final CategoryRepo categoryRepo;
 
+    // danh sách các combo
     @Override
     public Set<ComboDTO> findAllCombo() {
         return comboRepo.findAllCombo();
     }
 
+    // danh sách combo từ loại dịch vụ
     @Override
     public Set<ComboDTO> findAllComboByCategoryId(Integer categoryId) {
         return comboRepo.findAllComboByCategoryId(categoryId).stream()
@@ -36,6 +38,7 @@ public class ComboServiceImpl implements ComboService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    // danh sách combo dành cho management
     @Override
     public Set<ComboManagementResponse> getAllCombos() {
         try {
@@ -60,6 +63,7 @@ public class ComboServiceImpl implements ComboService {
         }
     }
 
+    // tạo mới combo
     @Override
     @Transactional
     public void createCombo(ComboDTO comboDTO) {
@@ -100,6 +104,7 @@ public class ComboServiceImpl implements ComboService {
         }
     }
 
+    // cập nhật combo
     @Override
     public void updateCombo(ComboDTO comboDTO) throws IOException {
         try {
@@ -154,13 +159,14 @@ public class ComboServiceImpl implements ComboService {
         }
     }
 
-        @Override
-        public void deleteCombo (Integer comboId){
-            if (!comboRepo.existsById(comboId)) {
-                throw new NoSuchElementException("Không tìm thấy dịch vụ với ID: " + comboId);
-            }
-
-            comboRepo.deleteById(comboId);
+    // xoá combo
+    @Override
+    public void deleteCombo (Integer comboId){
+        if (!comboRepo.existsById(comboId)) {
+            throw new NoSuchElementException("Không tìm thấy dịch vụ với ID: " + comboId);
         }
+
+        comboRepo.deleteById(comboId);
+    }
 
 }

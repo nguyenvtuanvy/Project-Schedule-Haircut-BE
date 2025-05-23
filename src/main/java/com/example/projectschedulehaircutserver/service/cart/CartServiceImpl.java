@@ -30,6 +30,7 @@ public class CartServiceImpl implements CartService{
     private final ServiceRepo serviceRepo;
 
 
+    // thêm combo vào giỏ hàng
     @Override
     public String addCartItemInCartTypeCombo(AddComboInCartItemRequest request) throws CartItemException, ComboException, LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -62,6 +63,7 @@ public class CartServiceImpl implements CartService{
         }
     }
 
+    // thêm dịch vụ vào giỏ hàng
     @Override
     public String addCartItemInCartTypeService(AddServiceInCartItemRequest request) throws CartItemException, ComboException, LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -94,6 +96,7 @@ public class CartServiceImpl implements CartService{
         }
     }
 
+    // lấy danh sách cart item
     @Override
     public Set<CartItemResponse> getCartItem() throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -107,6 +110,7 @@ public class CartServiceImpl implements CartService{
         }
     }
 
+    // đếm số lượng dịch vụ trong giỏ hàng
     @Override
     public Integer countCartItem() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

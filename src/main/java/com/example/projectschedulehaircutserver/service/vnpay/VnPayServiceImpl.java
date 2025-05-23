@@ -21,6 +21,7 @@ public class VnPayServiceImpl implements VnPayService {
     private final VnPayConfig vnPayConfig;
     private final OrderService orderService;
 
+    // Tạo URL thanh toán
     @Override
     public String createPayment(HttpServletRequest request, int amount, String orderInfo) {
         Map<String, String> vnpParams = new HashMap<>();
@@ -45,6 +46,7 @@ public class VnPayServiceImpl implements VnPayService {
         return vnPayConfig.buildPaymentUrl(vnpParams);
     }
 
+    // Xử lý callback từ VNPay
     @Override
     public void processPaymentReturn(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Map<String, String> fields = new HashMap<>();
@@ -61,6 +63,8 @@ public class VnPayServiceImpl implements VnPayService {
         }
     }
 
+
+    // Tạo chuỗi query string từ Map (key=value&key2=value2...) đã sắp xếp theo key
     private String buildQueryString(Map<String, String> fields) {
         return fields.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
@@ -69,6 +73,7 @@ public class VnPayServiceImpl implements VnPayService {
                 .orElse("");
     }
 
+    // Mã hóa tham số key=value
     private String encodeParameter(String key, String value) {
         try {
             return URLEncoder.encode(key, StandardCharsets.UTF_8.toString()) + "=" +
@@ -78,6 +83,7 @@ public class VnPayServiceImpl implements VnPayService {
         }
     }
 
+    // Xử lý thanh toán thành công
     private void handleSuccessfulPayment(Map<String, String> fields, HttpServletResponse response) throws IOException {
         String status = determinePaymentStatus(fields);
         String redirectUrl = buildRedirectUrl(fields, status);
@@ -85,11 +91,13 @@ public class VnPayServiceImpl implements VnPayService {
         response.sendRedirect(redirectUrl); // Redirect đến frontend
     }
 
+    // Xác định trạng thái thanh toán dựa vào mã phản hồi và mã trạng thái giao dịch từ VNPay
     private String determinePaymentStatus(Map<String, String> fields) {
         return "00".equals(fields.get("vnp_ResponseCode")) &&
                 "00".equals(fields.get("vnp_TransactionStatus")) ? "success" : "failure";
     }
 
+    //  Tạo URL chuyển hướng về frontend kèm theo thông tin trạng thái, mã giao dịch và số tiền
     private String buildRedirectUrl(Map<String, String> fields, String status) {
         // Sử dụng URL frontend đã cấu hình trong vnpReturnUrl
         return String.format("%s?status=%s&transactionId=%s&amount=%s",
@@ -99,6 +107,7 @@ public class VnPayServiceImpl implements VnPayService {
                 fields.get("vnp_Amount"));
     }
 
+    // Cập nhật trạng thái đơn hàng trong hệ thống
     private void updateOrderStatus(String orderInfo) {
         // Giả sử orderInfo có dạng "Payment for booking #123"
         String[] parts = orderInfo.split("#");
@@ -110,6 +119,7 @@ public class VnPayServiceImpl implements VnPayService {
         }
     }
 
+    // Xử lý thanh toán thất bại
     private void handleFailedPayment(HttpServletResponse response) throws IOException {
         response.sendRedirect(vnPayConfig.getVnpReturnUrl() + "?status=error");
     }

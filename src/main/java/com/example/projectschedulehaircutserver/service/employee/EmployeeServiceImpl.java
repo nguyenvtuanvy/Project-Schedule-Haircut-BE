@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,9 @@ public class EmployeeServiceImpl implements EmployeeService{
     private RoleRepo roleRepo;
     private PasswordEncoder encoder;
 
+    // tạo tài khoản nhân viên
     @Override
+    @Transactional
     public void createEmployee(EmployeeDTO employeeDTO) {
         Role role = roleRepo.findById(1)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy role-"));
@@ -68,6 +71,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         employeeRepo.save(employee);
     }
 
+    // cập nhật thông tin nhân viên
     @Override
     @Transactional
     public void updateEmployee(Integer id, EmployeeDTO employeeDTO) {
@@ -105,12 +109,13 @@ public class EmployeeServiceImpl implements EmployeeService{
         employeeRepo.save(employee);
     }
 
-
+    // hiển thị danh sách nhân viên
     @Override
     public Set<EmployeeDTO> showAllEmployee() {
         return employeeRepo.findAllEmployee();
     }
 
+    // tổng doanh thu theo nhân viên và ngày
     @Override
     public TotalPriceByEmployeeAndDayResponse totalPriceByEmployeeAndDay(TotalPriceByEmployeeAndDayRequest request) throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -129,6 +134,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         }
     }
 
+    // lấy thống kê các lịch hẹn
     @Override
     public EmployeeBookedStaffResponse getEmployeeBookingStats() throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -145,6 +151,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         }
     }
 
+    // lấy danh sách lịch hẹn theo giờ
     @Override
     public List<EmployeeAppointmentByHourResponse> getAppointmentsByHour() throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -161,6 +168,7 @@ public class EmployeeServiceImpl implements EmployeeService{
         }
     }
 
+    // lấy danh sách lịch hẹn cần xác nhận
     @Override
     public List<EmployeeAppointmentNeedsConfirmationResponse> getAppointmentsNeedsConfirmation() throws LoginException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -171,6 +179,8 @@ public class EmployeeServiceImpl implements EmployeeService{
                 List<Object[]> rawData = employeeRepo.getRawAppointmentsData(employee.getId());
 
                 Map<Integer, EmployeeAppointmentNeedsConfirmationResponse> resultMap = new LinkedHashMap<>();
+
+                DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
                 for (Object[] row : rawData) {
                     Orders order = (Orders) row[0];
@@ -183,6 +193,7 @@ public class EmployeeServiceImpl implements EmployeeService{
                             new EmployeeAppointmentNeedsConfirmationResponse(
                                     orderId,
                                     formatTime(order.getOrderStartTime(), order.getOrderEndTime()),
+                                    order.getOrderDate().format(dateFormatter),
                                     customerName,
                                     new ArrayList<>(),
                                     order.getStatus()

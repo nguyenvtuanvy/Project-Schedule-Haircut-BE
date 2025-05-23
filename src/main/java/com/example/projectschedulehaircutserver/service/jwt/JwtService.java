@@ -39,15 +39,18 @@ public class JwtService {
     private final WhiteListRepo whiteListRepo;
     private final UserDetailsService userDetailsService;
 
+    // Lấy ra key từ secretKey
     private Key getSignKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
+    // Tạo access token
     public String generateAccessToken(UserDetails userDetails) {
         return buildToken(userDetails, accessTokenExpiration);
     }
 
+    // Tạo refresh token
     @Transactional
     public String generateAndSaveRefreshToken(UserDetails userDetails) {
         String refreshToken = buildToken(userDetails, refreshTokenExpiration);
@@ -63,6 +66,7 @@ public class JwtService {
         return refreshToken;
     }
 
+    // Tạo token từ userDetails
     private String buildToken(UserDetails userDetails, long expiration) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", userDetails.getAuthorities().stream()
@@ -78,15 +82,18 @@ public class JwtService {
                 .compact();
     }
 
+    // Lấy ra username từ token
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
+    // Lấy ra các claims từ token
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
+    // Lấy ra tất cả claims từ token
     private Claims extractAllClaims(String token) {
         try {
             return Jwts.parserBuilder()
@@ -99,6 +106,7 @@ public class JwtService {
         }
     }
 
+    // Kiểm tra token đã hết hạn hay chưa
     public boolean isTokenExpired(String token) {
         try {
             return extractClaim(token, Claims::getExpiration).before(new Date());
@@ -107,14 +115,17 @@ public class JwtService {
         }
     }
 
+    // Kiểm tra token có trong blacklist hay không
     public boolean isTokenInBlackList(String token) {
         return blackListRepo.findByToken(token).isPresent();
     }
 
+    // Kiểm tra token có trong whitelist hay không
     public boolean isTokenInWhiteList(String username){
         return whiteListRepo.findByUserId(username).isPresent();
     }
 
+    // tạo mới access token từ refresh token
     @Transactional
     public String generateNewAccessTokenFromRefreshToken(String refreshToken) throws RefreshTokenException {
         // 1. Kiểm tra blacklist
@@ -138,6 +149,7 @@ public class JwtService {
         return generateAccessToken(userDetails);
     }
 
+    // Thu hồi refresh token
     @Transactional
     public void revokeRefreshToken(String refreshToken) {
         Optional<WhiteList> whiteListToken = whiteListRepo.findByToken(refreshToken);
@@ -149,6 +161,7 @@ public class JwtService {
         }
     }
 
+    // Kiểm tra token có hợp lệ hay không
     public boolean validateToken(String token, UserDetails userDetails) {
         try {
             final String username = extractUsername(token);
@@ -160,7 +173,8 @@ public class JwtService {
         }
     }
 
-    @Scheduled(cron = "0 0 0 * * ?")
+    // clear token trong blacklist
+    @Scheduled(cron = "0 0 0 * * ?") // 0h00 mỗi ngày
     @Transactional
     public void cleanExpiredBlacklistTokens() {
         LocalDateTime now = LocalDateTime.now();
@@ -168,6 +182,7 @@ public class JwtService {
         System.out.println("Đã dọn dẹp Blacklist vào lúc " + now);
     }
 
+    // clear token trong whitelist
     @Scheduled(cron = "0 0 0 1 */1 ?") // 0h00 ngày đầu tiên mỗi tháng
     @Transactional
     public void cleanExpiredWhitelistTokens() {

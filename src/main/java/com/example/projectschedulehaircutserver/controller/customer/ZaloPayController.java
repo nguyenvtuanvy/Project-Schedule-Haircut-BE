@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Map;
 
 @RestController
-@RequestMapping("web/zalopay")
+@RequestMapping("customer/zalopay")
 @RequiredArgsConstructor
 public class ZaloPayController {
     private final ZaloPayService zaloPayService;

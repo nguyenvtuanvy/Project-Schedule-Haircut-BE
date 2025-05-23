@@ -6,6 +6,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -41,10 +43,28 @@ public interface OrderRepo extends JpaRepository<Orders, Integer> {
     @Query("select o from Orders o where o.id = :orderId")
     Optional<Orders> findOrderByOrderId(@Param("orderId") Integer orderId);
 
-//    @Query("select o from Orders o where o.customer.id = :customerId and o.status = :status")
-//    Optional<Orders> findOrdersByCustomerIdAndStatus(@Param("customerId") Integer customerId, @Param("status") Integer status);
-
     @Modifying
     @Query("update Orders o set o.status = :status where o.id = :orderId and o.customer.id = :customerId and o.status = 1")
     void updateOrdersByStatus(@Param("orderId") Integer orderId, @Param("customerId") Integer customerId, @Param("status") Integer status);
+
+    @Query("SELECT o FROM Orders o WHERE o.status = :status " +
+            "AND o.orderDate = :date " +
+            "AND o.orderStartTime BETWEEN :start AND :end")
+    List<Orders> findByStatusAndOrderDateAndOrderStartTimeBetween(
+            @Param("status") Integer status,
+            @Param("date") LocalDate date,
+            @Param("start") LocalTime start,
+            @Param("end") LocalTime end
+    );
+
+    // Tìm các lịch hẹn đã xác nhận nhưng chưa thanh toán trước ngày cụ thể
+    @Query("SELECT o FROM Orders o WHERE o.status = :status " +
+            "AND o.orderDate < :date")
+    List<Orders> findByStatusAndOrderDateBefore(
+            @Param("status") Integer status,
+            @Param("date") LocalDate date
+    );
+
+    @Query("select count(o) > 0 from Orders o where o.customer.id = :customerId and o.status in (0, 1)")
+    boolean existsByCustomerId(@Param("customerId") Integer customerId);
 }

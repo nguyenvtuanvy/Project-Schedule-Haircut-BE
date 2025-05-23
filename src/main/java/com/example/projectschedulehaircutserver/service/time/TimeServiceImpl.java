@@ -23,6 +23,7 @@ public class TimeServiceImpl implements TimeService{
     private final TimeRepo timeRepo;
     private final EmployeeRepo employeeRepo;
 
+    // lấy danh sách khung giờ của nhân viên theo ngày
     @Override
     public Set<TimeDTO> findTimeByEmployeeIdAndOrderDate(Integer employeeId, LocalDate orderDate) {
         Set<Object[]> results = timeRepo.findTimeByEmployeeIdAndOrderDate(employeeId, orderDate);
@@ -50,11 +51,13 @@ public class TimeServiceImpl implements TimeService{
                 .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
+    // lấy dánh sách khung giờ
     @Override
     public Set<TimeDTO> findAllTimes() {
         return timeRepo.findAllTimes();
     }
 
+    // thêm khung giờ
     @Override
     @Transactional
     public void addTimeForEmployee(Integer timeId, Integer employeeId) {
@@ -76,6 +79,8 @@ public class TimeServiceImpl implements TimeService{
         timeRepo.save(time);
     }
 
+
+    // xóa khung giờ
     @Override
     @Transactional
     public void removeTimeFromEmployee(Integer timeId, Integer employeeId) {

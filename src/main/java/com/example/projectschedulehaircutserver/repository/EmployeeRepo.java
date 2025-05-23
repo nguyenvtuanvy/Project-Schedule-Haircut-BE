@@ -64,7 +64,8 @@ public interface EmployeeRepo extends JpaRepository<Employee, Integer> {
             "JOIN o.employees e " +
             "WHERE e.id = :employeeId " +
             "AND o.status IN (0, 1) " +
-            "ORDER BY o.orderStartTime ASC")
+            "AND o.orderDate >= CURRENT_DATE " +
+            "ORDER BY o.orderDate ASC, o.orderStartTime ASC")
     List<Object[]> getRawAppointmentsData(@Param("employeeId") Integer employeeId);
 
     @Query("select e FROM Employee e WHERE e.id = :employeeId")
