@@ -36,11 +36,11 @@ public class ChatBotController {
 
         String lowerMessage = userMessage.toLowerCase();
 
-        if (containsAny(lowerMessage, "kiểu tóc", "khuôn mặt", "tóc", "mặt")) {
+        if (containsAny(lowerMessage, "kiểu tóc", "khuôn mặt", "tóc", "mặt", "phù hợp", "cắt tóc", "gợi ý")) {
             response = handleHairStyleRequest(userMessage);
-        } else if (containsAny(lowerMessage, "dịch vụ", "service", "giá", "bảng giá")) {
+        } else if (containsAny(lowerMessage, "dịch vụ", "service", "giá", "bảng giá", "chi phí")) {
             response = handleServiceInquiry();
-        }  else if (containsAny(lowerMessage, "nhân viên", "stylist", "thợ", "người làm")) {
+        }  else if (containsAny(lowerMessage, "nhân viên", "stylist", "thợ", "người làm","tay nghề")) {
             response = handleEmployeeInquiry();
         } else {
             response = handleGeneralQuestion(userMessage);
@@ -59,22 +59,49 @@ public class ChatBotController {
     }
 
     private String handleHairStyleRequest(String userMessage) {
+        if (containsFaceDescription(userMessage)) {
+            return generateHairStyleRecommendation(userMessage);
+        } else {
+            // Nếu không có mô tả khuôn mặt, yêu cầu người dùng cung cấp
+            return """
+                Để gợi ý kiểu tóc phù hợp, vui lòng mô tả khuôn mặt của bạn bao gồm:
+                - Hình dáng khuôn mặt (tròn, vuông, oval, trái tim...)
+                - Đặc điểm nổi bật (trán cao/rộng, cằm nhọn/tròn, gò má...)
+                - Kiểu tóc hiện tại (nếu có)
+                Ví dụ: "Mặt tôi hình oval, trán cao, gò má rộng, tóc hiện tại dài ngang vai"
+                """;
+        }
+    }
+
+    private boolean containsFaceDescription(String message) {
+        String[] faceKeywords = {"tròn", "vuông", "oval", "dài", "trái tim", "trán", "cằm", "gò má", "mũi", "tóc"};
+        for (String keyword : faceKeywords) {
+            if (message.toLowerCase().contains(keyword)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String generateHairStyleRecommendation(String description) {
         String prompt = """
-        Bạn là chuyên gia tóc BarberPro. Hãy gợi ý kiểu tóc với định dạng:
-        
-        **Gợi ý kiểu tóc phù hợp**
-        
-        ✂️ [Tên kiểu 1]
-        - Phù hợp: [Đối tượng]
-        
-        ✂️ [Tên kiểu 2]
-        - Phù hợp: [Đối tượng]
-        
-        Yêu cầu:
-        1. Mỗi mục gạch đầu dòng phải xuống dòng mới
-        2. Giới hạn 2-3 kiểu tóc
-        3. Mỗi kiểu tóc không quá 3 dòng mô tả
-        """.formatted(userMessage);
+            Bạn là chuyên gia tóc tại Boss Barber. Dựa trên mô tả khuôn mặt sau, hãy gợi ý 3 kiểu tóc phù hợp nhất:
+            
+            **Mô tả khuôn mặt:**
+            %s
+            
+            **Yêu cầu định dạng câu trả lời:**
+            ✂️ **Gợi ý kiểu tóc phù hợp**
+            
+            🔹 [Tên kiểu tóc 1]
+            
+            🔹 [Tên kiểu tóc 2]
+            
+            🔹 [Tên kiểu tóc 3]
+            
+            **Lưu ý:**
+            - Giải thích ngắn gọn tại sao phù hợp với khuôn mặt
+            """.formatted(description);
 
         return geminiAIService.generateContent(prompt);
     }
@@ -84,7 +111,7 @@ public class ChatBotController {
         Set<ComboDTO> combos = comboService.findAllCombo();
 
         String prompt = """
-        Bạn là trợ lý BarberPro. Hãy trình bày thông tin dịch vụ theo định dạng sau:
+        Bạn là trợ lý Boss Barber. Hãy trình bày thông tin dịch vụ theo định dạng sau:
     
         **DANH SÁCH DỊCH VỤ**
         %s
@@ -118,7 +145,7 @@ public class ChatBotController {
         }
 
         String prompt = """
-            Bạn là trợ lý BarberPro. Hãy trình bày thông tin nhân viên theo định dạng sau:
+            Bạn là trợ lý Boss Barber. Hãy trình bày thông tin nhân viên theo định dạng sau:
             
             **DANH SÁCH NHÂN VIÊN**
             %s
@@ -147,7 +174,7 @@ public class ChatBotController {
 
     private String handleGeneralQuestion(String userMessage) {
         String prompt = """
-            Bạn là trợ lý BarberPro. Trả lời ngắn gọn (dưới 30 từ):
+            Bạn là trợ lý Boss Barber. Trả lời ngắn gọn (dưới 30 từ):
             
             "%s"
             """.formatted(userMessage);
